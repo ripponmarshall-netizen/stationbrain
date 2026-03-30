@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>StationBrain | Fire & EMS Assistant</title>
+    <title>StationBrain | Operational Support</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,12 +14,12 @@
         .dark { background-color: #121212; color: #e5e7eb; }
         .card { background: white; border: 1px solid #e5e7eb; }
         .dark .card { background: #1e1e1e; border-color: #333; }
-        .btn-teal { background-color: var(--brand-teal); color: white; }
         .missing-info-card { border-left: 4px solid #f59e0b; background: #fffbeb; }
         .dark .missing-info-card { background: #2d2613; border-left-color: #d97706; }
+        .report-narrative-card { border-left: 4px solid var(--brand-teal); background: #f0fdfa; }
+        .dark .report-narrative-card { background: #132a26; border-left-color: var(--brand-teal); }
         .spinner { border: 3px solid rgba(0,0,0,0.1); width: 24px; height: 24px; border-radius: 50%; border-left-color: var(--brand-teal); animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .status-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: bold; }
     </style>
 </head>
 <body class="transition-colors duration-200">
@@ -30,16 +30,16 @@
         <header class="sticky top-0 z-20 px-4 py-3 border-b flex justify-between items-center bg-white dark:bg-[#121212] dark:border-zinc-800">
             <div>
                 <h1 class="font-bold text-lg tracking-tight text-zinc-900 dark:text-white">StationBrain</h1>
-                <p class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Operational Support AI</p>
+                <p class="text-[10px] uppercase tracking-widest text-zinc-500 font-bold">Brigade Operational Support</p>
             </div>
             <button id="themeToggle" class="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800">
                 <span id="themeIcon">🌙</span>
             </button>
         </header>
 
-        <!-- Persistent Safety Disclaimer -->
+        <!-- Safety Disclaimer -->
         <div class="bg-zinc-100 dark:bg-zinc-900 px-4 py-2 text-[10px] text-zinc-500 border-b dark:border-zinc-800 leading-tight">
-            <strong>STATIONBRAIN SAFETY NOTICE:</strong> Support tool only. No replacement for official SOPs, Incident Command, or Department Policy. Verify all outputs manually.
+            <strong>NOTICE:</strong> Support tool only. Not a replacement for official SOPs or command decisions. Refill unit pump and tank before return to base.
         </div>
 
         <!-- Main Content -->
@@ -49,16 +49,13 @@
             <section id="inputSection" class="space-y-4">
                 <div class="relative">
                     <textarea id="rawInput" 
-                        class="w-full h-56 p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 focus:border-teal-600 focus:ring-0 outline-none resize-none transition-all text-sm"
-                        placeholder="Enter rough notes, voice transcripts, or drill prompts..."></textarea>
-                    <div class="absolute bottom-3 right-3 flex gap-2">
-                        <button class="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-full text-zinc-600 dark:text-zinc-400">🎤</button>
-                    </div>
+                        class="w-full h-64 p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 focus:border-teal-600 focus:ring-0 outline-none resize-none transition-all text-sm"
+                        placeholder="Enter incident notes (e.g., unit#5-19, one medium jet, occupant assisted...)"></textarea>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
-                    <button onclick="processInput('incident_summary')" class="p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 font-semibold text-xs flex flex-col items-center gap-1 hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                        <span>📄</span> Incident Summary
+                    <button onclick="processInput('small_incident_report')" class="col-span-2 p-4 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                        <span>📄</span> Small Incident Report
                     </button>
                     <button onclick="processInput('shift_handover')" class="p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 font-semibold text-xs flex flex-col items-center gap-1 hover:bg-zinc-50 dark:hover:bg-zinc-800">
                         <span>🔄</span> Shift Handover
@@ -69,33 +66,33 @@
                     <button onclick="processInput('drill_builder')" class="p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 font-semibold text-xs flex flex-col items-center gap-1 hover:bg-zinc-50 dark:hover:bg-zinc-800">
                         <span>🔥</span> Drill Builder
                     </button>
-                    <button onclick="processInput('gear_prompt')" class="col-span-2 p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 font-semibold text-xs flex items-center justify-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                        <span>🚒</span> Gear & Readiness Check
+                    <button onclick="processInput('gear_prompt')" class="p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 font-semibold text-xs flex flex-col items-center gap-1 hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                        <span>🚒</span> Unit Readiness
                     </button>
                 </div>
 
                 <div id="emptyState" class="text-center py-4">
-                    <button onclick="loadSample()" class="text-teal-600 text-xs font-semibold">Load Sample: Injury during Overhaul</button>
+                    <button onclick="loadSample()" class="text-teal-600 text-xs font-semibold">Load Sample: Apartment Fire (unit#5-19)</button>
                 </div>
             </section>
 
             <!-- Results Screen -->
             <section id="resultsSection" class="hidden space-y-4">
                 <div id="resultsHeader" class="flex justify-between items-center border-b pb-2 dark:border-zinc-800">
-                    <h2 id="resultTitle" class="text-sm font-bold uppercase tracking-widest text-zinc-500">Result</h2>
-                    <button onclick="resetApp()" class="text-xs font-bold text-teal-600 uppercase">Clear All</button>
+                    <h2 id="resultTitle" class="text-sm font-bold uppercase tracking-widest text-zinc-500">Output</h2>
+                    <button onclick="resetApp()" class="text-xs font-bold text-teal-600 uppercase">New Entry</button>
                 </div>
                 
                 <div id="resultCards" class="space-y-3">
-                    <!-- Results populated by JS -->
+                    <!-- Cards populated by JS -->
                 </div>
 
                 <div class="pt-4 space-y-3">
                     <button id="challengeBtn" onclick="challengeThinking()" class="w-full py-3 rounded-lg border-2 border-zinc-900 dark:border-white font-bold text-xs uppercase tracking-tight">
-                        Analyze Operational Gaps
+                        Identify Operational Gaps
                     </button>
                     <div class="flex gap-2">
-                        <button onclick="copyResults()" class="flex-1 py-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs font-bold uppercase">Copy</button>
+                        <button onclick="copyResults()" class="flex-1 py-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs font-bold uppercase">Copy Report</button>
                         <button onclick="window.print()" class="flex-1 py-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs font-bold uppercase">Export</button>
                     </div>
                 </div>
@@ -104,7 +101,7 @@
             <!-- Loading -->
             <section id="loadingState" class="hidden flex-col items-center justify-center py-20">
                 <div class="spinner mb-4"></div>
-                <p class="text-zinc-500 font-bold text-xs uppercase tracking-widest">StationBrain Processing...</p>
+                <p class="text-zinc-500 font-bold text-xs uppercase tracking-widest text-center">Formatting Brigade Report...</p>
             </section>
         </main>
 
@@ -116,22 +113,20 @@
             </button>
             <button onclick="showHistory()" class="flex flex-col items-center gap-1 text-zinc-400">
                 <span class="text-lg">📜</span>
-                <span class="text-[9px] font-bold uppercase">Session</span>
+                <span class="text-[9px] font-bold uppercase">History</span>
             </button>
         </nav>
     </div>
 
     <script>
         /**
-         * STATIONBRAIN SYSTEM INSTRUCTIONS (For developer reference when wiring Gemini)
-         * 
-         * 1. Tone: Calm, direct, concise.
-         * 2. Style: No AI hype/filler. Use lists and cards.
-         * 3. Logic: Explicitly label missing information. Identify gaps.
-         * 4. Safety: Include disclaimer. Never fabricate SOPs or facts.
+         * StationBrain Operational Logic
+         * Staffing Structure: 1 District Officer, 6 others (FF, LCpl, Cpl, Sgt)
          */
 
-        let appState = { history: [], currentOutput: null, isDarkMode: false };
+        const RANKS = ["Firefighter", "Lance Corporal", "Corporal", "Sergeant", "District Officer"];
+        
+        let appState = { history: [], currentOutput: null };
 
         function showSection(id) {
             ['inputSection', 'resultsSection', 'loadingState'].forEach(s => document.getElementById(s).classList.add('hidden'));
@@ -139,14 +134,12 @@
         }
 
         function toggleTheme() {
-            appState.isDarkMode = !appState.isDarkMode;
             document.documentElement.classList.toggle('dark');
-            document.getElementById('themeIcon').innerText = appState.isDarkMode ? '☀️' : '🌙';
         }
         document.getElementById('themeToggle').addEventListener('click', toggleTheme);
 
         function loadSample() {
-            document.getElementById('rawInput').value = "Arrived 02:45. Heavy smoke from window. Neighbor said resident was inside. Found stove fire. Extinguished. Search clear. Capt. Jones twisted ankle on stairs during overhaul, walked to ambulance. Used Engine 2. Back at station 05:00.";
+            document.getElementById('rawInput').value = "Fire reported at a one bedroom apartment. On arrival, fire observed confined to the living room area. One medium jet consisting of two one and a half inch hose was brought into operation to control and extinguish the blaze. One occupant was assisted from the building. Ventilation was carried out. Unit responding was unit#5-19.";
         }
 
         function resetApp() { document.getElementById('rawInput').value = ''; showSection('inputSection'); }
@@ -155,6 +148,8 @@
             const input = document.getElementById('rawInput').value.trim();
             if (!input) return;
             showSection('loadingState');
+            
+            // Mock API Latency
             setTimeout(async () => {
                 const result = await mockGeminiCall(mode, input);
                 appState.history.push({ mode, input, result });
@@ -168,35 +163,45 @@
             document.getElementById('resultTitle').innerText = mode.replace(/_/g, ' ');
             container.innerHTML = '';
             
-            for (const [key, value] of Object.entries(data)) {
-                const isWarning = ['missing_information', 'uncertainties', 'critical_gaps'].includes(key);
+            // Handle specific card order and formatting
+            const keys = Object.keys(data);
+            
+            keys.forEach(key => {
+                const value = data[key];
+                if (!value || (Array.isArray(value) && value.length === 0)) return;
+
                 const card = document.createElement('div');
-                card.className = isWarning ? 'missing-info-card p-4 rounded-lg shadow-sm' : 'card p-4 rounded-lg shadow-sm';
+                const isNarrative = key === 'final_report';
+                const isWarning = ['missing_information', 'follow_up_questions', 'critical_gaps'].includes(key);
+                
+                card.className = isNarrative ? 'report-narrative-card p-4 rounded-lg shadow-sm' : 
+                                 (isWarning ? 'missing-info-card p-4 rounded-lg shadow-sm' : 'card p-4 rounded-lg shadow-sm');
                 
                 const label = key.replace(/_/g, ' ').toUpperCase();
-                let content = Array.isArray(value) 
-                    ? `<ul class="list-disc ml-4 space-y-1">${value.map(v => `<li>${v}</li>`).join('')}</ul>`
-                    : `<p>${value}</p>`;
+                
+                // Narrative report is one clean paragraph, others can be lists
+                let content = (isNarrative || !Array.isArray(value)) 
+                    ? `<p class="${isNarrative ? 'text-zinc-900 dark:text-zinc-100 font-medium leading-relaxed' : ''}">${value}</p>`
+                    : `<ul class="list-disc ml-4 space-y-1">${value.map(v => `<li>${v}</li>`).join('')}</ul>`;
 
                 card.innerHTML = `
-                    <h3 class="text-[9px] font-extrabold ${isWarning ? 'text-amber-600' : 'text-zinc-400'} tracking-widest mb-2">${label}</h3>
+                    <h3 class="text-[9px] font-extrabold ${isWarning ? 'text-amber-600' : (isNarrative ? 'text-teal-600' : 'text-zinc-400')} tracking-widest mb-2">${label}</h3>
                     <div class="text-sm leading-snug">${content}</div>
                 `;
                 container.appendChild(card);
-            }
+            });
         }
 
         function challengeThinking() {
             const challenge = {
                 critical_gaps: [
-                    "Status of Capt. Jones: Needs confirmation if formal injury report was filed.",
-                    "Secondary Search: Incident notes only mention 'Search' - was a formal secondary search completed by a different crew?",
-                    "Utilities: No mention of Gas/Electric isolation status."
+                    "Staffing check: Ensure unit# was manned by a District Officer and 6 personnel as per riding structure.",
+                    "Utility Isolation: No mention of electricity or gas status in the living room area.",
+                    "Cause of Fire: Origin of the blaze not mentioned (potential follow-up for relevant authority)."
                 ],
-                operational_questions: [
-                    "Was the structure ventilated prior to entry?",
-                    "What was the hydrant pressure during the knock-down?",
-                    "Is Engine 2 back in service or awaiting decon?"
+                follow_up_questions: [
+                    "Was the occupant handed over to medical services?",
+                    "Were neighbors in adjacent units checked for smoke inhalation?"
                 ]
             };
             renderResults("Operational Analysis", challenge);
@@ -204,62 +209,43 @@
         }
 
         function copyResults() {
-            navigator.clipboard.writeText(document.getElementById('resultCards').innerText);
-            alert("Results copied to clipboard.");
+            const report = document.querySelector('.report-narrative-card p')?.innerText || "";
+            navigator.clipboard.writeText(report);
+            alert("Narrative report copied to clipboard.");
         }
 
         function showHistory() {
-            alert(`In-memory session contains ${appState.history.length} items. All data is wiped on refresh.`);
+            alert(`Session history: ${appState.history.length} entries. Data exists for current runtime only.`);
         }
 
         /**
-         * MOCK ENGINE - Following the persona rules:
-         * "Calm, direct, no hype, label uncertainties."
+         * MOCK ENGINE - Updated for Rank Structure and Brigade Style
          */
         async function mockGeminiCall(mode, input) {
-            const responses = {
-                incident_summary: {
-                    incident_type: "Residential Structure Fire (Active)",
-                    summary: "Engine 2 responded to residential fire. Single line deployed. Fire localized to kitchen. All searches negative.",
-                    actions_taken: ["Initial attack via Engine 2", "Primary search negative", "Stove fire extinguished", "Overhaul initiated"],
-                    hazards_observed: ["Heavy smoke conditions", "Stairwell slip hazard (Capt. Jones injury)"],
-                    personnel_status: "Capt. Jones: Ankle injury (walk-away). Needs formal evaluation status.",
-                    missing_information: [
-                        "Specific property address",
-                        "Utilities status (Gas/Electric)",
-                        "Secondary search confirmation",
-                        "Cause of Capt. Jones fall (Equipment or structural?)"
-                    ],
-                    confidence_notes: "Location and cause details not provided in raw notes. Injury severity assumed minor but unconfirmed."
-                },
-                shift_handover: {
-                    overview: "Overnight structure fire response completed.",
-                    urgent_issues: ["Capt. Jones injured (Ankle). Form status: UNKNOWN.", "Engine 2 requires inventory check after use."],
-                    equipment_status: "Engine 2 was used for one line. Water levels and hose status need verification.",
-                    missing_information: ["Next shift staffing shortages?", "Is Capt. Jones cleared for duty?"]
-                },
-                after_action_review: {
-                    event_overview: "Early morning residential fire response.",
-                    what_went_well: ["Rapid knock-down of kitchen fire.", "Efficient primary search."],
-                    what_could_improve: ["Safety during overhaul (injury occurred).", "Note-taking on utility isolation."],
-                    critical_gaps: ["No record of secondary search in provided notes.", "No utilities isolation mentioned."],
-                    training_needs: ["Overhaul safety protocols.", "Incident documentation standards."]
-                },
-                drill_builder: {
-                    scenario_title: "Overhaul Safety & Mayday Drill",
-                    objective: "Practice safe movement in post-fire environments and injury extraction.",
-                    steps: ["Setup debris obstacle course", "Simulate firefighter injury in dark/smoky conditions", "Team extraction without further injury"],
-                    hazards: ["Trips/Falls", "Sharp debris", "Fatigue"],
-                    debrief_questions: ["How do we clear paths during overhaul?", "Who monitors safety during the 'slow' phase of a fire?"]
-                },
-                gear_prompt: {
-                    scenario: "Structure Fire Overhaul",
-                    required_gear: ["Full PPE", "SCBA (Air quality unknown)", "TIC", "Hand tools"],
-                    safety_checks: ["Staircase integrity check", "Lighting availability", "Air management monitor"],
-                    uncertainties: ["Presence of asbestos or toxic particulates in smoke - Decon recommended."]
-                }
+            // Internal Logic: unit# used instead of engine. DO + 6 structure.
+            if (mode === 'small_incident_report') {
+                return {
+                    final_report: "At arrival at the given location, the brigade observed fire confined to a one bedroom apartment / living room area and one medium jet consisting of (two) one and a half inch hose was brought into operation to control and extinguish the blaze. One occupant was assisted from the building and ventilation was carried out. Seeing no threat of re-ignition, the brigade then made up to refill the unit pump and tank and return to base in unit#5-19.",
+                    missing_information: ["Property owner details", "Status of utility isolation", "Occupant injury status"],
+                    confidence_notes: "Report follows standard brigade narrative. Unit number was provided as unit#5-19.",
+                    follow_up_questions: ["Was a secondary search conducted?", "Was the scene handed over to the police?"]
+                };
+            }
+
+            if (mode === 'shift_handover') {
+                return {
+                    overview: "Shift dominated by apartment fire at 02:45 hrs.",
+                    staffing_status: "Riding unit structure maintained: 1 District Officer, 1 Sergeant, 1 Corporal, 2 Lance Corporals, 2 Firefighters.",
+                    equipment_concerns: ["unit#5-19 pump checked and refilled.", "One length of 1.5 inch hose tagged for inspection."],
+                    pending_tasks: ["Complete small incident report for unit#5-19", "Check hydrant pressure in Sector 5"]
+                };
+            }
+
+            return {
+                summary: "Operational data processed for " + mode,
+                unit_involved: "unit#[not provided]",
+                missing_information: ["Please specify the unit# used."]
             };
-            return responses[mode] || responses.incident_summary;
         }
     </script>
 </body>
