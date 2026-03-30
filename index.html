@@ -12,8 +12,8 @@
         .light { background-color: #f3f4f6; color: #1f2937; }
         .dark { background-color: #0f172a; color: #f8fafc; }
         
-        .card { transition: background-color 0.3s, border-color 0.3s; }
-        .light .card { background-color: #ffffff; border-color: #e5e7eb; }
+        .card { transition: background-color 0.3s, border-color 0.3s; border-width: 1px; }
+        .light .card { background-color: #ffffff; border-color: #e5e7eb; shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); }
         .dark .card { background-color: #1e293b; border-color: #334155; }
         
         .report-box { border-left: 4px solid var(--brand-teal); }
@@ -25,7 +25,7 @@
         .hidden { display: none !important; }
         input, select, textarea { width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #d1d5db; font-size: 0.875rem; outline: none; }
         .dark input, .dark select, .dark textarea { background-color: #0f172a; border-color: #334155; color: white; }
-        input:focus, textarea:focus { border-color: var(--brand-teal); ring: 2px; ring-color: var(--brand-teal); }
+        input:focus, textarea:focus, select:focus { border-color: var(--brand-teal); box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.2); }
         
         .no-print { @media print { display: none; } }
     </style>
@@ -48,13 +48,13 @@
             <!-- Content injected via JavaScript -->
         </main>
 
-        <!-- Global Navigation -->
+        <!-- Navigation for Input/Result Views -->
         <nav id="globalNav" class="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-4 card border-t flex gap-2 hidden no-print">
-            <button onclick="goHome()" class="flex-1 py-3 rounded-lg bg-slate-200 dark:bg-slate-800 font-bold text-xs uppercase">Back Home</button>
-            <button onclick="clearCurrentForm()" class="px-4 py-3 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 font-bold text-xs uppercase">Clear</button>
+            <button onclick="goHome()" class="flex-1 py-3 rounded-lg bg-slate-200 dark:bg-slate-800 font-bold text-xs uppercase tracking-wider">Back Home</button>
+            <button onclick="clearCurrentForm()" class="px-4 py-3 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 font-bold text-xs uppercase tracking-wider">Clear</button>
         </nav>
 
-        <!-- App Footer (In-App Only) -->
+        <!-- App Footer (UI Only - Excluded from Reports) -->
         <footer id="appFooter" class="p-6 text-center border-t dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 no-print">
             <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">
                 Created by L/Cpl. R. Marshall of the Portland Division
@@ -91,7 +91,7 @@
         }
 
         /**
-         * NAVIGATION & STATE HELPERS
+         * NAVIGATION & STATE
          */
         function goHome() {
             state.view = 'home';
@@ -102,7 +102,7 @@
         }
 
         function clearCurrentForm() {
-            if(confirm("Wipe current inputs?")) {
+            if(confirm("Wipe all current inputs?")) {
                 state.formData = {};
                 render();
             }
@@ -150,11 +150,11 @@
 
             container.innerHTML = `<div class="grid grid-cols-1 gap-3 pt-2">
                 ${modules.map(m => `
-                    <button onclick="selectMode('${m.id}')" class="card p-6 rounded-xl border-2 flex items-center gap-4 text-left border-transparent hover:border-teal-500 transition-all">
+                    <button onclick="selectMode('${m.id}')" class="card p-6 rounded-xl flex items-center gap-4 text-left border-2 border-transparent hover:border-teal-500 transition-all active:scale-95">
                         <span class="text-3xl">${m.icon}</span>
                         <div>
                             <h3 class="font-bold text-lg leading-tight">${m.title}</h3>
-                            <p class="text-[10px] uppercase text-slate-400 font-bold tracking-widest">Operational Support</p>
+                            <p class="text-[10px] uppercase text-slate-400 font-bold tracking-widest">Operational Module</p>
                         </div>
                     </button>
                 `).join('')}
@@ -167,7 +167,7 @@
             if (state.mode === 'incident') {
                 html = `
                 <div class="space-y-4">
-                    <label class="text-[10px] font-bold uppercase text-slate-400">Incident Classification</label>
+                    <label class="text-[10px] font-bold uppercase text-slate-400">Incident Type</label>
                     <select id="f_incidentType" onchange="updateIncidentType(this.value)">
                         <option value="house_fire" ${state.incidentType === 'house_fire' ? 'selected' : ''}>House Fire</option>
                         <option value="mv_fire" ${state.incidentType === 'mv_fire' ? 'selected' : ''}>Motor Vehicle Fire</option>
@@ -195,19 +195,21 @@
                         ${HANDOVER_CHECKS.map(c => `
                             <div class="flex justify-between items-center border-b pb-2 dark:border-slate-700">
                                 <span class="text-xs font-medium">${c}</span>
-                                <select class="sh-check w-24 text-xs p-1 h-8 font-bold" data-label="${c}">
-                                    <option value="not_stated">?</option><option value="yes">YES</option><option value="no">NO</option>
+                                <select class="sh-check w-24 text-xs p-1 h-8 font-bold text-teal-600" data-label="${c}">
+                                    <option value="not_stated">?</option>
+                                    <option value="yes">YES</option>
+                                    <option value="no">NO</option>
                                 </select>
                             </div>
                         `).join('')}
                     </div>
-                    <textarea id="f_summary" rows="3" placeholder="General summary & incidents..."></textarea>
-                    <textarea id="f_personnel" rows="2" placeholder="Personnel status: OIC (DO), Reliefs, Absences..."></textarea>
-                    <textarea id="f_defects" rows="2" placeholder="Unit defects or equipment issues..."></textarea>
+                    <textarea id="f_summary" rows="3" placeholder="General summary & incidents...">${state.formData.summary || ''}</textarea>
+                    <textarea id="f_personnel" rows="2" placeholder="Personnel status: OIC (DO), Reliefs...">${state.formData.personnel || ''}</textarea>
+                    <textarea id="f_defects" rows="2" placeholder="Unit defects or equipment issues...">${state.formData.defects || ''}</textarea>
                 </div>`;
             } else {
                 html = `<div class="space-y-4">
-                    <textarea id="f_generic" rows="10" placeholder="Enter scenario details or rough notes here...">${state.formData.generic || ''}</textarea>
+                    <textarea id="f_generic" rows="10" placeholder="Enter scenario details or notes here...">${state.formData.generic || ''}</textarea>
                 </div>`;
             }
 
@@ -228,7 +230,7 @@
                 return `<input type="text" id="f_cause" placeholder="Cause of Alarm / Smoke scare">
                         <input type="text" id="f_left" placeholder="Person / Authority left with">`;
             } else if (t === 'special_service') {
-                return `<input type="text" id="f_sstype" placeholder="Service type (Lockout, Padlock, Entry...)">
+                return `<input type="text" id="f_sstype" placeholder="Service type (Lockout, Entry...)">
                         <input type="text" id="f_tools" placeholder="Tools used">`;
             }
             return '';
@@ -246,32 +248,43 @@
         }
 
         /**
-         * LOGIC ENGINE
+         * GENERATION ENGINE
          */
         async function handleGenerate() {
+            // FIX: CAPTURE CHECKLIST DATA IMMEDIATELY BEFORE VIEW SWITCH
+            let capturedChecks = [];
+            if (state.mode === 'handover') {
+                const checkElems = document.querySelectorAll('.sh-check');
+                checkElems.forEach(el => {
+                    const status = el.value === 'yes' ? '✅ DONE' : (el.value === 'no' ? '❌ NOT DONE' : '⚠️ NOT STATED');
+                    capturedChecks.push({ label: el.dataset.label, status, raw: el.value });
+                });
+            }
+
             saveCurrentInputs();
             if (state.mode === 'incident' && !state.formData.loc) return alert("Location is required.");
 
             const main = document.getElementById('mainView');
             main.innerHTML = `<div class="flex flex-col items-center justify-center py-20">
                 <div class="spinner mb-4"></div>
-                <p class="font-bold text-[10px] uppercase text-slate-500 tracking-widest">Building Report...</p>
+                <p class="font-bold text-[10px] uppercase text-slate-500 tracking-widest text-center">Processing operational data...</p>
             </div>`;
 
+            // Simulate logic processing delay
             setTimeout(() => {
-                state.report = buildReport();
+                state.report = buildReport(capturedChecks);
                 state.view = 'result';
                 render();
             }, 800);
         }
 
-        function buildReport() {
+        function buildReport(capturedChecks) {
             const d = state.formData;
             const res = { 
                 narrative: '', 
                 missing: [], 
                 questions: [], 
-                checks: [], 
+                checks: capturedChecks || [], 
                 timestamp: new Date().toLocaleString('en-JM', { dateStyle: 'medium', timeStyle: 'short' }) 
             };
 
@@ -280,26 +293,18 @@
                 if (['house_fire', 'bush_fire', 'mv_fire'].includes(state.incidentType)) {
                     res.narrative = `At arrival at the given location, the brigade observed fire involving ${d.area || 'the reported area'} and ${d.jet || 'standard operations'} was brought into operation to control and extinguish the blaze. ${d.notes || ''} Seeing no threat of re-ignition, the brigade then made up to refill the unit pump and tank and return to base in unit#${unit}.`;
                 } else if (state.incidentType === 'mva') {
-                    res.narrative = `At arrival at the given location, the brigade observed a motor vehicle accident involving ${d.vcount || 'vehicles'}. ${d.trapped || 'No persons'} were assisted. ${d.notes || ''} Scene was handed over to the relevant authority and brigade returned to base in unit#${unit}.`;
-                } else if (state.incidentType === 'false_alarm') {
-                    res.narrative = `At arrival at the given location, investigation revealed the alarm was caused by ${d.cause || 'undetermined factors'}. No signs of fire were found. Scene was left with ${d.left || 'on-site personnel'}. Brigade returned to base in unit#${unit}.`;
+                    res.narrative = `At arrival at the given location, the brigade observed a motor vehicle accident involving ${d.vcount || 'vehicles'}. ${d.trapped || 'No persons'} were found trapped or assisted. ${d.notes || ''} Scene was handed over to the relevant authority and brigade returned to base in unit#${unit}.`;
                 } else {
-                    res.narrative = `At arrival at the given location, brigade performed a special service: ${d.sstype || 'assistance'}. Tools used: ${d.tools || 'manual tools'}. ${d.notes || ''} Brigade returned to base in unit#${unit}.`;
+                    res.narrative = `Incident Report: ${state.incidentType.replace('_',' ')}. At the given location, brigade conducted operations related to ${d.notes || 'reported incident'}. Returned to base in unit#${unit}.`;
                 }
-                if (!d.unit) res.missing.push("Unit number (unit#)");
-                res.questions.push("Confirm if a primary search was conducted by the OIC?");
             } else if (state.mode === 'handover') {
-                const checkElems = document.querySelectorAll('.sh-check');
-                checkElems.forEach(el => {
-                    const status = el.value === 'yes' ? '✅ DONE' : (el.value === 'no' ? '❌ NOT DONE' : '⚠️ NOT STATED');
-                    res.checks.push({ label: el.dataset.label, status });
-                });
-                res.narrative = `SHIFT HANDOVER BRIEFING\n\nSummary: ${d.summary || 'Routine shift.'}\n\nPersonnel: ${d.personnel || 'Not stated.'}\n\nDefects: ${d.defects || 'None reported.'}`;
+                res.narrative = `SHIFT HANDOVER REPORT\n\nSummary: ${d.summary || 'Routine shift operations.'}\n\nPersonnel Status: ${d.personnel || 'Full strength (DO+6 structure).'}\n\nEquipment Defects: ${d.defects || 'None noted.'}`;
                 
-                const sbSigned = Array.from(checkElems).find(e => e.dataset.label.includes("Status Book Signed"));
-                if (sbSigned && sbSigned.value === 'no') res.questions.push("SOP Action: Status Book must be signed immediately.");
+                // Urgent Logic Check
+                const sbSigned = res.checks.find(e => e.label.includes("Status Book Signed"));
+                if (sbSigned && sbSigned.raw === 'no') res.questions.push("SOP Action: Status Book signature must be confirmed immediately.");
             } else {
-                res.narrative = d.generic || "Operational notes generated.";
+                res.narrative = d.generic || "No operational notes provided.";
             }
 
             return res;
@@ -312,7 +317,7 @@
             container.innerHTML = `
                 <div class="space-y-4 animate-in fade-in duration-300">
                     <div class="text-[9px] font-bold text-teal-600 text-right uppercase tracking-widest">
-                        Handover Completed: ${state.report.timestamp}
+                        Finalized: ${state.report.timestamp}
                     </div>
 
                     <div class="card p-5 rounded-xl shadow-sm report-box">
@@ -320,8 +325,9 @@
                         <p class="text-sm leading-relaxed whitespace-pre-wrap">${state.report.narrative}</p>
                     </div>
 
+                    <!-- Checklist Summary (Handover Only) -->
                     ${state.report.checks.length ? `
-                    <div class="card p-4 rounded-xl border dark:border-slate-700">
+                    <div class="card p-4 rounded-xl border dark:border-slate-700 bg-white dark:bg-slate-800">
                         <h3 class="text-[10px] font-bold uppercase text-slate-400 tracking-widest mb-3">Checklist Summary</h3>
                         <div class="space-y-2">
                             ${state.report.checks.map(c => `
@@ -333,37 +339,46 @@
                         </div>
                     </div>` : ''}
 
+                    <!-- Follow-Ups -->
                     ${state.report.questions.length ? `
                     <div class="card p-4 rounded-xl missing-box">
-                        <h3 class="text-[10px] font-bold uppercase text-amber-600 tracking-widest mb-2">⚠️ Urgent Follow-Ups</h3>
-                        <ul class="text-xs space-y-1 list-disc ml-4 font-medium">${state.report.questions.map(q=>`<li>${q}</li>`).join('')}</ul>
+                        <h3 class="text-[10px] font-bold uppercase text-amber-600 tracking-widest mb-2">⚠️ Follow-Up Required</h3>
+                        <ul class="text-xs space-y-1 list-disc ml-4 font-medium text-amber-800 dark:text-amber-200">
+                            ${state.report.questions.map(q=>`<li>${q}</li>`).join('')}
+                        </ul>
                     </div>` : ''}
 
-                    <div class="grid grid-cols-1 gap-2 pt-4 no-print">
-                        <button onclick="copyFullReport()" class="w-full py-4 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold uppercase text-xs tracking-widest shadow-lg">Copy for Word</button>
-                        <button onclick="copyNarrativeOnly()" class="w-full py-3 rounded-xl border-2 border-slate-900 dark:border-white font-bold uppercase text-xs">Copy Narrative Only</button>
+                    <div class="grid grid-cols-1 gap-2 pt-4 no-print pb-4">
+                        <button onclick="copyFullReport()" class="w-full py-4 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold uppercase text-xs tracking-widest shadow-lg active:scale-95 transition-transform">Copy for Word</button>
+                        <button onclick="copyNarrativeOnly()" class="w-full py-3 rounded-xl border-2 border-slate-900 dark:border-white font-bold uppercase text-xs active:scale-95 transition-transform">Copy Narrative Only</button>
+                        <button onclick="goHome()" class="w-full py-3 text-teal-600 font-bold uppercase text-xs text-center">Start New Task</button>
                     </div>
                 </div>
             `;
         }
 
         /**
-         * EXPORT ACTIONS
+         * CLIPBOARD ACTIONS
          */
         async function copyFullReport() {
             const r = state.report;
-            const checks = r.checks.map(c => `${c.label}: ${c.status}`).join('\n');
-            const text = `STATIONBRAIN REPORT: ${state.mode.toUpperCase()}\nCOMPLETED: ${r.timestamp}\n-----------------------------------\n\n${r.narrative}\n\n${r.checks.length ? 'CHECKLIST SUMMARY:\n' + checks + '\n\n' : ''}END OF REPORT`;
-            await navigator.clipboard.writeText(text);
-            alert("Report formatted for Word & copied.");
+            const checks = r.checks.length ? `CHECKLIST SUMMARY:\n` + r.checks.map(c => `${c.label}: ${c.status}`).join('\n') + `\n\n` : '';
+            const text = `REPORT: ${state.mode.toUpperCase()}\nCOMPLETED: ${r.timestamp}\n-----------------------------------\n\n${r.narrative}\n\n${checks}END OF REPORT`;
+            
+            try {
+                await navigator.clipboard.writeText(text);
+                alert("Formatted report copied for Word.");
+            } catch (err) {
+                alert("Failed to copy. Please try again.");
+            }
         }
 
         async function copyNarrativeOnly() {
             await navigator.clipboard.writeText(state.report.narrative);
-            alert("Narrative only copied.");
+            alert("Narrative copied to clipboard.");
         }
 
-        // Init App
+        // Run App
         render();
     </script>
 </body>
