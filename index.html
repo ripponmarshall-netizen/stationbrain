@@ -8,273 +8,359 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root { --brand-teal: #0d9488; --brand-teal-dark: #0f766e; }
-        body { font-family: 'Inter', sans-serif; background-color: #f9fafb; -webkit-tap-highlight-color: transparent; }
-        .dark { background-color: #0f172a; color: #f1f5f9; }
-        .input-card { display: none; }
-        .input-card.active { display: block; animation: fadeIn 0.2s ease-out; }
-        .mode-btn { transition: all 0.2s; border: 1px solid #e2e8f0; }
-        .mode-btn.active { border-color: var(--brand-teal); background-color: #f0fdfa; color: var(--brand-teal); ring: 2px; }
-        .dark .mode-btn.active { background-color: #134e4a; color: white; border-color: var(--brand-teal); }
-        .btn-primary { background-color: var(--brand-teal); color: white; transition: transform 0.1s; }
-        .btn-primary:active { transform: scale(0.98); }
-        .report-output { border-left: 4px solid var(--brand-teal); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        
+        /* Theme Logic Fixes */
+        .light { background-color: #f3f4f6; color: #1f2937; }
+        .dark { background-color: #0f172a; color: #f8fafc; }
+        .dark .card { background-color: #1e293b; border-color: #334155; }
+        .light .card { background-color: #ffffff; border-color: #e5e7eb; }
+        
+        .btn-mode { transition: all 0.2s; border-width: 2px; }
+        .btn-mode:active { transform: scale(0.96); }
+        
+        /* Result Styles */
+        .report-box { border-left: 4px solid var(--brand-teal); }
+        .missing-box { border-left: 4px solid #f59e0b; background-color: rgba(245, 158, 11, 0.1); }
+        
         .spinner { border: 3px solid rgba(0,0,0,0.1); width: 24px; height: 24px; border-radius: 50%; border-left-color: var(--brand-teal); animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .hidden { display: none !important; }
+        input, select, textarea { width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid #d1d5db; font-size: 0.875rem; }
+        .dark input, .dark select, .dark textarea { background-color: #0f172a; border-color: #334155; color: white; }
     </style>
 </head>
-<body class="transition-colors duration-200">
+<body class="light">
 
-    <div class="max-w-md mx-auto min-h-screen flex flex-col relative">
+    <div class="max-w-md mx-auto min-h-screen flex flex-col relative pb-20">
+        
         <!-- Header -->
-        <header class="sticky top-0 z-30 px-4 py-3 border-b bg-white dark:bg-slate-900 dark:border-slate-800 flex justify-between items-center">
+        <header class="p-4 flex justify-between items-center sticky top-0 z-50 card border-b shadow-sm">
             <div>
-                <h1 class="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">StationBrain</h1>
-                <p class="text-[10px] uppercase tracking-widest text-teal-600 font-bold">Operational Workstation</p>
+                <h1 class="font-extrabold text-xl tracking-tight">StationBrain</h1>
+                <p id="currentModeLabel" class="text-[10px] uppercase tracking-widest text-teal-600 font-bold">Main Menu</p>
             </div>
-            <button onclick="document.documentElement.classList.toggle('dark')" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">🌙</button>
+            <button onclick="toggleTheme()" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-lg" id="themeIcon">🌙</button>
         </header>
 
-        <!-- Mode Selector -->
-        <nav class="p-4 grid grid-cols-3 gap-2 bg-white dark:bg-slate-900 border-b dark:border-slate-800">
-            <button onclick="setMode('sir')" class="mode-btn p-2 rounded-lg text-[10px] font-bold uppercase flex flex-col items-center gap-1" id="nav-sir"><span>📄</span>SIR</button>
-            <button onclick="setMode('sh')" class="mode-btn p-2 rounded-lg text-[10px] font-bold uppercase flex flex-col items-center gap-1" id="nav-sh"><span>🔄</span>Handover</button>
-            <button onclick="setMode('aar')" class="mode-btn p-2 rounded-lg text-[10px] font-bold uppercase flex flex-col items-center gap-1" id="nav-aar"><span>📝</span>AAR</button>
-            <button onclick="setMode('drill')" class="mode-btn p-2 rounded-lg text-[10px] font-bold uppercase flex flex-col items-center gap-1" id="nav-drill"><span>🔥</span>Drill</button>
-            <button onclick="setMode('gear')" class="mode-btn p-2 rounded-lg text-[10px] font-bold uppercase flex flex-col items-center gap-1" id="nav-gear"><span>🚒</span>Gear</button>
-            <button onclick="setMode('cmt')" class="mode-btn p-2 rounded-lg text-[10px] font-bold uppercase flex flex-col items-center gap-1" id="nav-cmt"><span>🧐</span>Challenge</button>
-        </nav>
-
-        <main class="flex-1 p-4 space-y-6 pb-24">
-            
-            <!-- Dynamic Input Area -->
-            <div id="inputArea">
-                <!-- 1. Small Incident Report Form -->
-                <div id="form-sir" class="input-card space-y-4">
-                    <h2 class="text-sm font-bold text-slate-400 uppercase">Small Incident Report</h2>
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="date" id="sir-date" class="p-2 border rounded text-sm dark:bg-slate-800 dark:border-slate-700">
-                        <input type="time" id="sir-time" class="p-2 border rounded text-sm dark:bg-slate-800 dark:border-slate-700">
-                    </div>
-                    <input type="text" id="sir-unit" placeholder="unit# (e.g. 5-19)" class="w-full p-2 border rounded text-sm dark:bg-slate-800 dark:border-slate-700">
-                    <input type="text" id="sir-location" placeholder="Location" class="w-full p-2 border rounded text-sm dark:bg-slate-800 dark:border-slate-700">
-                    <textarea id="sir-desc" placeholder="Incident Description (e.g. fire in living room)" class="w-full h-20 p-2 border rounded text-sm dark:bg-slate-800 dark:border-slate-700"></textarea>
-                    <input type="text" id="sir-ops" placeholder="Hose/Jet Details (e.g. one medium jet)" class="w-full p-2 border rounded text-sm dark:bg-slate-800 dark:border-slate-700">
-                    <textarea id="sir-extra" placeholder="Additional Info (Occupants, Ventilation, etc)" class="w-full h-16 p-2 border rounded text-sm dark:bg-slate-800 dark:border-slate-700"></textarea>
-                </div>
-
-                <!-- 2. Shift Handover Form -->
-                <div id="form-sh" class="input-card space-y-4">
-                    <h2 class="text-sm font-bold text-slate-400 uppercase">Shift Handover</h2>
-                    <textarea id="sh-summary" placeholder="General Shift Summary" class="w-full h-20 p-2 border rounded text-sm dark:bg-slate-800"></textarea>
-                    <div class="card bg-white dark:bg-slate-800 p-3 rounded-lg border dark:border-slate-700 space-y-2">
-                        <p class="text-[10px] font-bold uppercase text-teal-600">Mandatory Checks</p>
-                        <div id="sh-checklist" class="grid grid-cols-1 gap-2 text-xs">
-                            <!-- Populated by JS -->
-                        </div>
-                    </div>
-                    <textarea id="sh-personnel" placeholder="Personnel: DO, Sgt, Cpl, LCpl, FF..." class="w-full h-16 p-2 border rounded text-sm dark:bg-slate-800"></textarea>
-                </div>
-
-                <!-- 3. AAR Form -->
-                <div id="form-aar" class="input-card space-y-4">
-                    <h2 class="text-sm font-bold text-slate-400 uppercase">After-Action Review</h2>
-                    <textarea id="aar-overview" placeholder="Event Overview" class="w-full h-20 p-2 border rounded text-sm dark:bg-slate-800"></textarea>
-                    <textarea id="aar-well" placeholder="What went well?" class="w-full h-16 p-2 border rounded text-sm dark:bg-slate-800"></textarea>
-                    <textarea id="aar-improve" placeholder="What could improve?" class="w-full h-16 p-2 border rounded text-sm dark:bg-slate-800"></textarea>
-                </div>
-
-                <!-- 4. Drill Builder -->
-                <div id="form-drill" class="input-card space-y-4">
-                    <h2 class="text-sm font-bold text-slate-400 uppercase">Drill Builder</h2>
-                    <input type="text" id="drill-prompt" placeholder="Scenario (e.g. High Rise Fire)" class="w-full p-2 border rounded text-sm dark:bg-slate-800">
-                    <input type="text" id="drill-equipment" placeholder="Equipment Available" class="w-full p-2 border rounded text-sm dark:bg-slate-800">
-                    <select id="drill-level" class="w-full p-2 border rounded text-sm dark:bg-slate-800">
-                        <option value="recruit">Recruit Level</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="advanced">Advanced / DO Level</option>
-                    </select>
-                </div>
-
-                <!-- 5. Gear Prompt -->
-                <div id="form-gear" class="input-card space-y-4">
-                    <h2 class="text-sm font-bold text-slate-400 uppercase">Gear Support</h2>
-                    <input type="text" id="gear-type" placeholder="Incident Type" class="w-full p-2 border rounded text-sm dark:bg-slate-800">
-                    <textarea id="gear-hazards" placeholder="Known Hazards" class="w-full h-20 p-2 border rounded text-sm dark:bg-slate-800"></textarea>
-                </div>
-
-                <!-- 6. Challenge Thinking -->
-                <div id="form-cmt" class="input-card space-y-4">
-                    <h2 class="text-sm font-bold text-slate-400 uppercase">Challenge My Thinking</h2>
-                    <textarea id="cmt-notes" placeholder="Paste your draft report or incident notes here for critical analysis..." class="w-full h-48 p-2 border rounded text-sm dark:bg-slate-800"></textarea>
-                </div>
-            </div>
-
-            <!-- Action Area -->
-            <div id="actionArea" class="hidden">
-                <button onclick="generateReport()" class="btn-primary w-full py-4 rounded-xl font-bold text-sm uppercase tracking-widest shadow-lg shadow-teal-500/20">
-                    Generate Output
-                </button>
-            </div>
-
-            <!-- Result Area -->
-            <div id="resultArea" class="hidden space-y-4 animate-in fade-in duration-300">
-                <div class="flex justify-between items-center border-b pb-2 dark:border-slate-800">
-                    <h3 class="text-xs font-bold uppercase text-slate-400">Generated Result</h3>
-                    <button onclick="clearResult()" class="text-xs text-teal-600 font-bold">CLEAR</button>
-                </div>
-                <div id="resultContent" class="space-y-4"></div>
-                <div id="resultActions" class="grid grid-cols-2 gap-2 pt-4">
-                    <button onclick="copyToWord()" class="p-3 bg-slate-900 text-white dark:bg-white dark:text-black rounded-lg text-[10px] font-bold uppercase">Copy for Word</button>
-                    <button id="sir-narrative-btn" onclick="copyNarrativeOnly()" class="hidden p-3 bg-slate-100 dark:bg-slate-800 rounded-lg text-[10px] font-bold uppercase">Narrative Only</button>
-                </div>
-            </div>
-
-            <!-- Loading -->
-            <div id="loading" class="hidden flex-col items-center py-12">
-                <div class="spinner mb-4"></div>
-                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Processing Operational Data...</p>
-            </div>
+        <!-- Dynamic Content Area -->
+        <main id="mainView" class="p-4 space-y-4">
+            <!-- Views injected here by JS -->
         </main>
 
-        <footer class="p-4 bg-slate-50 dark:bg-slate-900 text-[9px] text-slate-400 text-center border-t dark:border-slate-800">
-            STATIONBRAIN V2: Support tool only. No replacement for official JFB SOPs or Command Decisions.
-        </footer>
+        <!-- Global Navigation (Visible when not on Home) -->
+        <nav id="globalNav" class="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-4 card border-t flex gap-2 hidden">
+            <button onclick="goHome()" class="flex-1 py-3 rounded-lg bg-slate-200 dark:bg-slate-800 font-bold text-xs uppercase">Go Back Home</button>
+            <button onclick="clearCurrentForm()" class="px-4 py-3 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 font-bold text-xs uppercase">Clear</button>
+        </nav>
     </div>
 
+    <!-- Templates & Logic -->
     <script>
-        const STATE = { mode: null, data: {} };
-        const CHECKS = ["Occurrence Book", "Telephone Book", "Unit Checked", "Equipment Checked", "Checklist Signed", "Forecast Done", "Status Book Written", "Status Book Signed"];
+        /**
+         * STATE MANAGEMENT
+         */
+        let state = {
+            theme: 'light',
+            view: 'home', // home, input, result
+            mode: null,   // incident, handover, aar, etc
+            incidentType: 'house_fire',
+            formData: {},
+            report: null
+        };
+
         const RANKS = ["Firefighter", "Lance Corporal", "Corporal", "Sergeant", "District Officer"];
 
-        // Init Handover Checklist
-        const checkList = document.getElementById('sh-checklist');
-        CHECKS.forEach(c => {
-            const div = document.createElement('div');
-            div.className = "flex justify-between items-center py-1 border-b dark:border-slate-700";
-            div.innerHTML = `<span>${c}</span><select class="sh-check bg-transparent font-bold text-teal-600" data-label="${c}"><option value="not_stated">?</option><option value="yes">YES</option><option value="no">NO</option></select>`;
-            checkList.appendChild(div);
-        });
-
-        function setMode(mode) {
-            STATE.mode = mode;
-            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`nav-${mode}`).classList.add('active');
-            
-            document.querySelectorAll('.input-card').forEach(c => c.classList.remove('active'));
-            document.getElementById(`form-${mode}`).classList.add('active');
-            
-            document.getElementById('actionArea').classList.remove('hidden');
-            document.getElementById('resultArea').classList.add('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        /**
+         * THEME ENGINE
+         */
+        function toggleTheme() {
+            state.theme = state.theme === 'light' ? 'dark' : 'light';
+            document.body.className = state.theme;
+            document.getElementById('themeIcon').innerText = state.theme === 'light' ? '🌙' : '☀️';
         }
 
-        async function generateReport() {
-            if (!validate()) return;
-            
-            document.getElementById('actionArea').classList.add('hidden');
-            document.getElementById('loading').classList.remove('hidden');
-            document.getElementById('resultArea').classList.add('hidden');
+        /**
+         * NAVIGATION & RESET
+         */
+        function goHome() {
+            state.view = 'home';
+            state.mode = null;
+            state.formData = {};
+            state.report = null;
+            render();
+        }
 
-            // Simulate AI logic per mode
+        function clearCurrentForm() {
+            if(confirm("Clear all current inputs?")) {
+                state.formData = {};
+                render();
+            }
+        }
+
+        function startNewReport() {
+            state.report = null;
+            state.view = 'input';
+            render();
+        }
+
+        /**
+         * RENDER ENGINE
+         */
+        function render() {
+            const main = document.getElementById('mainView');
+            const nav = document.getElementById('globalNav');
+            const label = document.getElementById('currentModeLabel');
+            
+            main.innerHTML = '';
+            nav.classList.add('hidden');
+            label.innerText = state.mode ? state.mode.replace('_', ' ') : 'Main Menu';
+
+            if (state.view === 'home') {
+                renderHome(main);
+            } else if (state.view === 'input') {
+                nav.classList.remove('hidden');
+                renderInputForm(main);
+            } else if (state.view === 'result') {
+                nav.classList.remove('hidden');
+                renderResult(main);
+            }
+            window.scrollTo(0,0);
+        }
+
+        function renderHome(container) {
+            const modes = [
+                { id: 'incident', title: 'Incident Report', icon: '📄', color: 'border-teal-500' },
+                { id: 'handover', title: 'Shift Handover', icon: '🔄', color: 'border-slate-400' },
+                { id: 'aar', title: 'After-Action Review', icon: '📝', color: 'border-slate-400' },
+                { id: 'drill', title: 'Drill Builder', icon: '🔥', color: 'border-slate-400' },
+                { id: 'gear', title: 'Gear Prompt', icon: '🚒', color: 'border-slate-400' },
+                { id: 'cmt', title: 'Challenge Thinking', icon: '🧐', color: 'border-teal-600' }
+            ];
+
+            container.innerHTML = `<div class="grid grid-cols-1 gap-3 pt-2">
+                ${modes.map(m => `
+                    <button onclick="selectMode('${m.id}')" class="btn-mode card p-6 rounded-xl flex items-center gap-4 text-left ${m.color}">
+                        <span class="text-3xl">${m.icon}</span>
+                        <div>
+                            <h3 class="font-bold text-lg">${m.title}</h3>
+                            <p class="text-[10px] uppercase text-slate-400 font-bold tracking-widest">Operational Module</p>
+                        </div>
+                    </button>
+                `).join('')}
+            </div>`;
+        }
+
+        function selectMode(m) {
+            state.mode = m;
+            state.view = 'input';
+            render();
+        }
+
+        function renderInputForm(container) {
+            let html = '';
+
+            if (state.mode === 'incident') {
+                html = `
+                <div class="space-y-4">
+                    <label class="text-xs font-bold uppercase text-slate-400 tracking-widest">Incident Type</label>
+                    <select id="incidentTypeSelector" onchange="updateIncidentType(this.value)">
+                        <option value="house_fire" ${state.incidentType === 'house_fire' ? 'selected' : ''}>House Fire</option>
+                        <option value="mv_fire" ${state.incidentType === 'mv_fire' ? 'selected' : ''}>Motor Vehicle Fire</option>
+                        <option value="bush_fire" ${state.incidentType === 'bush_fire' ? 'selected' : ''}>Bush / Rubbish Fire</option>
+                        <option value="mva" ${state.incidentType === 'mva' ? 'selected' : ''}>Motor Vehicle Accident</option>
+                        <option value="false_alarm" ${state.incidentType === 'false_alarm' ? 'selected' : ''}>False Alarm</option>
+                        <option value="special_service" ${state.incidentType === 'special_service' ? 'selected' : ''}>Special Service</option>
+                        <option value="other" ${state.incidentType === 'other' ? 'selected' : ''}>Other</option>
+                    </select>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="date" id="f_date" placeholder="Date" value="${state.formData.date || ''}">
+                        <input type="time" id="f_time" placeholder="Time" value="${state.formData.time || ''}">
+                    </div>
+                    <input type="text" id="f_unit" placeholder="unit# (e.g. 5-19)" value="${state.formData.unit || ''}">
+                    <input type="text" id="f_loc" placeholder="Location" value="${state.formData.loc || ''}">
+                    
+                    ${renderIncidentSpecificFields()}
+
+                    <textarea id="f_notes" rows="3" placeholder="Additional rough notes or observations...">${state.formData.notes || ''}</textarea>
+                </div>`;
+            } else if (state.mode === 'handover') {
+                html = `<div class="space-y-4">
+                    <h3 class="text-xs font-bold uppercase text-teal-600">Accountability Checks</h3>
+                    <div class="card p-4 rounded-lg space-y-3 text-sm" id="handoverChecks">
+                        ${['Occurrence Book', 'Telephone Book', 'Unit Checked', 'Equipment Checked', 'Checklist Signed', 'Forecast Done', 'Status Book Written', 'Status Book Signed'].map(c => `
+                            <div class="flex justify-between items-center border-b pb-2 dark:border-slate-700">
+                                <span>${c}</span>
+                                <select class="w-20 text-xs p-1 h-8" data-check="${c}">
+                                    <option value="no">NO</option><option value="yes">YES</option>
+                                </select>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <textarea id="f_summary" rows="3" placeholder="Shift summary & incidents..."></textarea>
+                    <textarea id="f_personnel" rows="2" placeholder="Personnel status: OIC, Reliefs, Absences..."></textarea>
+                    <textarea id="f_defects" rows="2" placeholder="Unit defects or equipment issues..."></textarea>
+                </div>`;
+            } else if (state.mode === 'aar') {
+                html = `<div class="space-y-4">
+                    <textarea id="f_overview" rows="3" placeholder="Event Overview"></textarea>
+                    <textarea id="f_well" rows="2" placeholder="What went well?"></textarea>
+                    <textarea id="f_improve" rows="2" placeholder="What could improve?"></textarea>
+                    <textarea id="f_lessons" rows="2" placeholder="Lessons learned & Training needs"></textarea>
+                </div>`;
+            } else {
+                // Default simple input for Drill, Gear, CMT
+                html = `<div class="space-y-4">
+                    <textarea id="f_generic" rows="8" placeholder="Enter scenario details or rough notes here..."></textarea>
+                </div>`;
+            }
+
+            container.innerHTML = html + `
+                <button onclick="handleGenerate()" class="w-full py-4 mt-6 rounded-xl bg-teal-600 text-white font-bold uppercase tracking-widest shadow-lg">Generate Report</button>
+            `;
+        }
+
+        function renderIncidentSpecificFields() {
+            const t = state.incidentType;
+            if (t === 'house_fire' || t === 'bush_fire') {
+                return `<input type="text" id="f_occ" placeholder="Occupancy Type">
+                        <input type="text" id="f_confined" placeholder="Fire Confined to / Area Involved">
+                        <input type="text" id="f_jet" placeholder="Hose / Jet details (e.g. one medium jet)">`;
+            } else if (t === 'mv_fire') {
+                return `<input type="text" id="f_vtype" placeholder="Vehicle Type">
+                        <input type="text" id="f_reg" placeholder="Registration Number">
+                        <input type="text" id="f_jet" placeholder="Jet details">`;
+            } else if (t === 'mva') {
+                return `<input type="number" id="f_vcount" placeholder="Number of vehicles">
+                        <input type="text" id="f_trapped" placeholder="Persons trapped / assisted">
+                        <input type="text" id="f_haz" placeholder="Hazards / Scene Safety">`;
+            } else if (t === 'false_alarm') {
+                return `<input type="text" id="f_cause" placeholder="Cause of Alarm / Smoke scare">
+                        <input type="text" id="f_arrival" placeholder="Findings on arrival">
+                        <input type="text" id="f_left" placeholder="Person / Authority left with">`;
+            } else if (t === 'special_service') {
+                return `<input type="text" id="f_sstype" placeholder="Type (Padlock, lockout, door entry...)">
+                        <input type="text" id="f_assisted" placeholder="Person / Property assisted">
+                        <input type="text" id="f_tools" placeholder="Tools used">`;
+            }
+            return '';
+        }
+
+        function updateIncidentType(val) {
+            state.incidentType = val;
+            saveCurrentInputs();
+            render();
+        }
+
+        function saveCurrentInputs() {
+            // Very basic state capture to prevent loss during type switch
+            const inputs = document.querySelectorAll('input, textarea, select');
+            inputs.forEach(i => {
+                if(i.id) state.formData[i.id.replace('f_', '')] = i.value;
+            });
+        }
+
+        /**
+         * REPORT GENERATION ENGINE
+         */
+        async function handleGenerate() {
+            saveCurrentInputs();
+            
+            // Validation
+            if (state.mode === 'incident' && !state.formData.loc) {
+                alert("Location is required."); return;
+            }
+
+            const main = document.getElementById('mainView');
+            main.innerHTML = `<div class="flex flex-col items-center justify-center py-20">
+                <div class="spinner mb-4"></div>
+                <p class="font-bold text-xs uppercase text-slate-500 tracking-widest">Generating Structured Output...</p>
+            </div>`;
+
             setTimeout(() => {
-                const output = runModeEngine(STATE.mode);
-                renderOutput(output);
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('resultArea').classList.remove('hidden');
+                state.report = buildReportLogic();
+                state.view = 'result';
+                render();
             }, 1000);
         }
 
-        function validate() {
-            if (STATE.mode === 'sir' && !document.getElementById('sir-desc').value) {
-                alert("Incident description is required for SIR."); return false;
-            }
-            if (STATE.mode === 'sh' && !document.getElementById('sh-summary').value) {
-                alert("Shift summary is required."); return false;
-            }
-            return true;
-        }
+        function buildReportLogic() {
+            const d = state.formData;
+            const res = { narrative: '', missing: [], questions: [] };
 
-        function runModeEngine(mode) {
-            // Internal Mode logic as requested
-            const date = document.getElementById('sir-date').value || new Date().toLocaleDateString();
-            const time = document.getElementById('sir-time').value || new Date().toLocaleTimeString();
+            if (state.mode === 'incident') {
+                const type = state.incidentType;
+                const dateStr = d.date || '[not provided]';
+                const timeStr = d.time || '[not provided]';
+                const unitStr = d.unit || '[not provided]';
 
-            switch(mode) {
-                case 'sir':
-                    const unit = document.getElementById('sir-unit').value || '[unit# not provided]';
-                    const narrative = `At arrival at the given location, the brigade observed ${document.getElementById('sir-desc').value} and ${document.getElementById('sir-ops').value} was brought into operation to control and extinguish the blaze. ${document.getElementById('sir-extra').value} Seeing no threat of re-ignition, the brigade then made up to refill the unit pump and tank and return to base in unit#${unit}.`;
-                    return {
-                        title: "Small Incident Report",
-                        meta: { Date: date, Time: time, Unit: unit },
-                        sections: { "Final Narrative": narrative, "Missing Information": ["Utilities status", "Property owner name"], "Follow-up Questions": ["Was secondary search completed?"] }
-                    };
-                case 'sh':
-                    const checks = Array.from(document.querySelectorAll('.sh-check')).map(s => `${s.dataset.label}: ${s.value.toUpperCase()}`);
-                    return {
-                        title: "Shift Handover",
-                        meta: { Date: date, Status: "Shift End" },
-                        sections: { "Overview": document.getElementById('sh-summary').value, "Mandatory Checks": checks, "Personnel": document.getElementById('sh-personnel').value, "Outstanding": "None" }
-                    };
-                case 'aar':
-                    return { title: "After-Action Review", sections: { "Overview": document.getElementById('aar-overview').value, "What Went Well": document.getElementById('aar-well').value, "To Improve": document.getElementById('aar-improve').value } };
-                case 'drill':
-                    return { title: "Drill Plan", sections: { "Objective": "Master primary search", "Setup": "Smokey room 2nd floor", "Hazards": "Heat, disorientation", "Steps": ["1. Deploy line", "2. Left hand search", "3. Victim extraction"] } };
-                case 'gear':
-                    return { title: "Gear Support", sections: { "Likely Required": ["Full Structural PPE", "SCBA", "TIC", "Halligan"], "Safety Checks": ["Air pressure", "Seal check", "Radio battery"] } };
-                case 'cmt':
-                    return { title: "Critical Analysis", sections: { "Operational Gaps": ["No mention of gas isolation", "Missing confirmation of 'All Clear'"], "Critical Questions": ["Why was only one jet used?", "What was the hydrant pressure?"] } };
-            }
-        }
-
-        function renderOutput(data) {
-            const container = document.getElementById('resultContent');
-            container.innerHTML = '';
-            
-            // Render Meta
-            if (data.meta) {
-                const metaDiv = document.createElement('div');
-                metaDiv.className = "flex gap-4 text-[10px] font-bold text-slate-400 mb-4";
-                for (const [k, v] of Object.entries(data.meta)) {
-                    metaDiv.innerHTML += `<span>${k.toUpperCase()}: ${v}</span>`;
+                if (['house_fire', 'bush_fire', 'mv_fire'].includes(type)) {
+                    let desc = type === 'mv_fire' ? `a ${d.vtype || 'vehicle'} fire (${d.reg || 'reg unknown'})` : `fire confined to ${d.confined || 'the reported area'}`;
+                    res.narrative = `At arrival at the given location, the brigade observed ${desc} and ${d.jet || 'standard operations'} was brought into operation to control and extinguish the blaze. ${d.notes || ''} Seeing no threat of re-ignition, the brigade then made up to refill the unit pump and tank and return to base in unit#${unitStr}.`;
+                } else if (type === 'mva') {
+                    res.narrative = `At arrival at the given location, the brigade observed a motor vehicle accident involving ${d.vcount || 'multiple'} vehicles. ${d.trapped || 'No persons'} were found trapped. Brigade focused on scene safety and ${d.haz || 'hazard mitigation'}. ${d.notes || ''} Scene was handed over to relevant authorities. Brigade returned to base in unit#${unitStr}.`;
+                } else if (type === 'false_alarm') {
+                    res.narrative = `At arrival at the given location, investigation was carried out. Brigade found ${d.arrival || 'no signs of fire'}. The alarm was caused by ${d.cause || 'undetermined factors'}. Scene was left with ${d.left || 'the owner'}. Brigade returned to base in unit#${unitStr}.`;
+                } else {
+                    res.narrative = `At arrival at the given location, the brigade performed a special service: ${d.sstype || 'assistance'}. ${d.assisted || 'Subject'} was assisted using ${d.tools || 'manual tools'}. ${d.notes || ''} Brigade returned to base in unit#${unitStr}.`;
                 }
-                container.appendChild(metaDiv);
+                
+                if(!d.unit) res.missing.push("Unit number (unit#)");
+                if(!d.time) res.missing.push("Arrival time");
+                res.questions.push("Was a primary search completed by the DO?");
+            } else if (state.mode === 'handover') {
+                res.narrative = `SHIFT HANDOVER BRIEFING\n\nSummary: ${d.summary || 'Routine shift'}\n\nPersonnel Status: ${d.personnel || 'Full strength'}\n\nDefects: ${d.defects || 'None reported'}`;
+                res.missing.push("Confirmed Status Book signature");
+            } else {
+                res.narrative = "Report content generated based on provided operational details.";
             }
 
-            // Render Sections
-            for (const [title, content] of Object.entries(data.sections)) {
-                const sec = document.createElement('div');
-                const isNarrative = title === "Final Narrative";
-                sec.className = isNarrative ? "report-output bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm" : "card bg-white dark:bg-slate-800 p-4 rounded-lg border dark:border-slate-700";
-                
-                let body = Array.isArray(content) ? `<ul class="list-disc ml-4 space-y-1">${content.map(i=>`<li>${i}</li>`).join('')}</ul>` : `<p class="leading-relaxed">${content}</p>`;
-                
-                sec.innerHTML = `<h4 class="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 mb-2">${title}</h4><div class="text-sm">${body}</div>`;
-                container.appendChild(sec);
-            }
-
-            document.getElementById('sir-narrative-btn').classList.toggle('hidden', STATE.mode !== 'sir');
+            return res;
         }
 
-        function clearResult() {
-            document.getElementById('resultArea').classList.add('hidden');
-            document.getElementById('actionArea').classList.remove('hidden');
+        function renderResult(container) {
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="card p-5 rounded-xl shadow-sm report-box">
+                        <h3 class="text-[10px] font-extrabold uppercase text-teal-600 tracking-widest mb-2">Final Narrative</h3>
+                        <p id="narrativeBody" class="text-sm leading-relaxed">${state.report.narrative}</p>
+                    </div>
+
+                    ${state.report.missing.length ? `
+                    <div class="card p-4 rounded-xl missing-box">
+                        <h3 class="text-[10px] font-bold uppercase text-amber-600 tracking-widest mb-2">⚠️ Missing Details</h3>
+                        <ul class="text-xs space-y-1 list-disc ml-4">${state.report.missing.map(m=>`<li>${m}</li>`).join('')}</ul>
+                    </div>` : ''}
+
+                    <div class="grid grid-cols-1 gap-2 pt-4">
+                        <button onclick="copyToWord()" class="w-full py-4 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold uppercase text-xs tracking-widest shadow-lg">Copy for Word</button>
+                        <button onclick="copyNarrative()" class="w-full py-3 rounded-xl border-2 border-slate-900 dark:border-white font-bold uppercase text-xs">Copy Narrative Only</button>
+                        <button onclick="startNewReport()" class="w-full py-3 text-teal-600 font-bold uppercase text-xs">Start New Report</button>
+                    </div>
+                </div>
+            `;
         }
 
+        /**
+         * EXPORT & CLIPBOARD
+         */
         async function copyToWord() {
-            const text = document.getElementById('resultContent').innerText;
+            const date = state.formData.date || new Date().toLocaleDateString();
+            const title = (state.mode === 'incident' ? state.incidentType.replace('_', ' ') : state.mode).toUpperCase();
+            const text = `REPORT: ${title}\nDATE: ${date}\n------------------\n\n${state.report.narrative}\n\nGENERATED VIA STATIONBRAIN`;
             await navigator.clipboard.writeText(text);
-            alert("Copied to clipboard formatted for Word.");
+            alert("Report formatted and copied for Word.");
         }
 
-        async function copyNarrativeOnly() {
-            const narrative = document.querySelector('.report-output p').innerText;
-            await navigator.clipboard.writeText(narrative);
-            alert("Narrative copied.");
+        async function copyNarrative() {
+            await navigator.clipboard.writeText(state.report.narrative);
+            alert("Narrative copied to clipboard.");
         }
 
-        // Auto-set first mode
-        setMode('sir');
+        // Initialize App
+        render();
     </script>
 </body>
 </html>
