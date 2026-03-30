@@ -20,6 +20,13 @@
         .dark .report-narrative-card { background: #132a26; border-left-color: var(--brand-teal); }
         .spinner { border: 3px solid rgba(0,0,0,0.1); width: 24px; height: 24px; border-radius: 50%; border-left-color: var(--brand-teal); animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Fixed UI Helpers */
+        .check-grid { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }
+        .status-pill { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; text-transform: uppercase; }
+        .status-completed { background: #dcfce7; color: #166534; }
+        .status-warning { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+        .status-error { background: #fee2e2; color: #991b1b; }
     </style>
 </head>
 <body class="transition-colors duration-200">
@@ -39,60 +46,155 @@
 
         <!-- Safety Disclaimer -->
         <div class="bg-zinc-100 dark:bg-zinc-900 px-4 py-2 text-[10px] text-zinc-500 border-b dark:border-zinc-800 leading-tight">
-            <strong>NOTICE:</strong> Support tool only. Not a replacement for official SOPs or command decisions. Refill unit pump and tank before return to base.
+            <strong>NOTICE:</strong> Operational support only. Not a replacement for official SOPs or command decisions.
         </div>
 
         <!-- Main Content -->
         <main id="appContent" class="flex-1 overflow-y-auto p-4 space-y-6 pb-24">
             
             <!-- Input Screen -->
-            <section id="inputSection" class="space-y-4">
-                <div class="relative">
+            <section id="inputSection" class="space-y-6">
+                
+                <!-- General Notes -->
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold uppercase text-zinc-500">Shift Overview / Rough Notes</label>
                     <textarea id="rawInput" 
-                        class="w-full h-64 p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 focus:border-teal-600 focus:ring-0 outline-none resize-none transition-all text-sm"
-                        placeholder="Enter incident notes (e.g., unit#5-19, one medium jet, occupant assisted...)"></textarea>
+                        class="w-full h-32 p-4 rounded-xl border-2 border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 focus:border-teal-600 outline-none text-sm"
+                        placeholder="Enter general shift summary, unit# details, and incidents..."></textarea>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="processInput('small_incident_report')" class="col-span-2 p-4 rounded-lg bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                <!-- Mandatory Handover Checklist (Fixed Controls) -->
+                <div class="card p-4 rounded-xl space-y-4">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-teal-600 flex items-center gap-2">
+                        📋 Mandatory Shift Checks
+                    </h3>
+                    
+                    <div id="handoverChecks" class="space-y-3">
+                        <!-- Check Item Template -->
+                        <div class="check-grid text-sm border-b pb-2 dark:border-zinc-800">
+                            <span class="font-medium">Occurrence book checked</span>
+                            <select class="check-input bg-zinc-100 dark:bg-zinc-800 p-1 rounded text-xs" data-key="occurrence_book">
+                                <option value="not_stated">Not Stated</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                        <div class="check-grid text-sm border-b pb-2 dark:border-zinc-800">
+                            <span class="font-medium">Telephone book checked</span>
+                            <select class="check-input bg-zinc-100 dark:bg-zinc-800 p-1 rounded text-xs" data-key="telephone_book">
+                                <option value="not_stated">Not Stated</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                        <div class="check-grid text-sm border-b pb-2 dark:border-zinc-800">
+                            <span class="font-medium">Unit checked (unit#)</span>
+                            <select class="check-input bg-zinc-100 dark:bg-zinc-800 p-1 rounded text-xs" data-key="unit_checked">
+                                <option value="not_stated">Not Stated</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                        <div class="check-grid text-sm border-b pb-2 dark:border-zinc-800">
+                            <span class="font-medium">Equipment checked</span>
+                            <select class="check-input bg-zinc-100 dark:bg-zinc-800 p-1 rounded text-xs" data-key="equipment_checked">
+                                <option value="not_stated">Not Stated</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                        <div class="check-grid text-sm border-b pb-2 dark:border-zinc-800">
+                            <span class="font-medium">Checklist signed</span>
+                            <select class="check-input bg-zinc-100 dark:bg-zinc-800 p-1 rounded text-xs" data-key="checklist_signed">
+                                <option value="not_stated">Not Stated</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                        <div class="check-grid text-sm border-b pb-2 dark:border-zinc-800">
+                            <span class="font-medium">Forecast done</span>
+                            <select class="check-input bg-zinc-100 dark:bg-zinc-800 p-1 rounded text-xs" data-key="forecast_done">
+                                <option value="not_stated">Not Stated</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                        <div class="check-grid text-sm border-b pb-2 dark:border-zinc-800">
+                            <span class="font-medium">Status book written up</span>
+                            <select class="check-input bg-zinc-100 dark:bg-zinc-800 p-1 rounded text-xs" data-key="status_book_written">
+                                <option value="not_stated">Not Stated</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                        <div class="check-grid text-sm border-b pb-2 dark:border-zinc-800">
+                            <span class="font-medium">Status book signed</span>
+                            <select class="check-input bg-zinc-100 dark:bg-zinc-800 p-1 rounded text-xs" data-key="status_book_signed">
+                                <option value="not_stated">Not Stated</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Classes and Activities -->
+                <div class="card p-4 rounded-xl space-y-4">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-teal-600">🎓 Training & Activities</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-sm font-medium">Classes done during shift?</span>
+                                <select id="classesDone" class="bg-zinc-100 dark:bg-zinc-800 p-1 rounded text-xs" onchange="toggleDetail('classDetailsCont', this.value)">
+                                    <option value="no">No</option>
+                                    <option value="yes">Yes</option>
+                                </select>
+                            </div>
+                            <div id="classDetailsCont" class="hidden">
+                                <textarea id="classDetails" class="w-full mt-2 p-2 border rounded text-sm dark:bg-zinc-800 dark:border-zinc-700" placeholder="Topic, duration, attendance..."></textarea>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-sm font-medium">Activities done during shift?</span>
+                                <select id="activitiesDone" class="bg-zinc-100 dark:bg-zinc-800 p-1 rounded text-xs" onchange="toggleDetail('activityDetailsCont', this.value)">
+                                    <option value="no">No</option>
+                                    <option value="yes">Yes</option>
+                                </select>
+                            </div>
+                            <div id="activityDetailsCont" class="hidden">
+                                <textarea id="activityDetails" class="w-full mt-2 p-2 border rounded text-sm dark:bg-zinc-800 dark:border-zinc-700" placeholder="Station work, cleaning, maintenance..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-2">
+                    <button onclick="processHandover()" class="p-4 rounded-lg bg-teal-600 text-white font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                        <span>🔄</span> Generate Handover Brief
+                    </button>
+                    <button onclick="processInput('small_incident_report')" class="p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 font-semibold text-xs flex items-center justify-center gap-2">
                         <span>📄</span> Small Incident Report
                     </button>
-                    <button onclick="processInput('shift_handover')" class="p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 font-semibold text-xs flex flex-col items-center gap-1 hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                        <span>🔄</span> Shift Handover
-                    </button>
-                    <button onclick="processInput('after_action_review')" class="p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 font-semibold text-xs flex flex-col items-center gap-1 hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                        <span>📝</span> Review (AAR)
-                    </button>
-                    <button onclick="processInput('drill_builder')" class="p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 font-semibold text-xs flex flex-col items-center gap-1 hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                        <span>🔥</span> Drill Builder
-                    </button>
-                    <button onclick="processInput('gear_prompt')" class="p-3 rounded-lg border border-zinc-200 dark:border-zinc-700 font-semibold text-xs flex flex-col items-center gap-1 hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                        <span>🚒</span> Unit Readiness
-                    </button>
-                </div>
-
-                <div id="emptyState" class="text-center py-4">
-                    <button onclick="loadSample()" class="text-teal-600 text-xs font-semibold">Load Sample: Apartment Fire (unit#5-19)</button>
                 </div>
             </section>
 
             <!-- Results Screen -->
-            <section id="resultsSection" class="hidden space-y-4">
-                <div id="resultsHeader" class="flex justify-between items-center border-b pb-2 dark:border-zinc-800">
-                    <h2 id="resultTitle" class="text-sm font-bold uppercase tracking-widest text-zinc-500">Output</h2>
-                    <button onclick="resetApp()" class="text-xs font-bold text-teal-600 uppercase">New Entry</button>
+            <section id="resultsSection" class="hidden space-y-4 pb-12">
+                <div class="flex justify-between items-center border-b pb-2 dark:border-zinc-800">
+                    <h2 class="text-sm font-bold uppercase tracking-widest text-zinc-500">Handover Brief</h2>
+                    <button onclick="resetApp()" class="text-xs font-bold text-teal-600 uppercase">New Brief</button>
                 </div>
                 
-                <div id="resultCards" class="space-y-3">
+                <div id="resultCards" class="space-y-4">
                     <!-- Cards populated by JS -->
                 </div>
 
                 <div class="pt-4 space-y-3">
-                    <button id="challengeBtn" onclick="challengeThinking()" class="w-full py-3 rounded-lg border-2 border-zinc-900 dark:border-white font-bold text-xs uppercase tracking-tight">
-                        Identify Operational Gaps
-                    </button>
                     <div class="flex gap-2">
-                        <button onclick="copyResults()" class="flex-1 py-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs font-bold uppercase">Copy Report</button>
+                        <button onclick="copyResults()" class="flex-1 py-3 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-black rounded-lg text-xs font-bold uppercase">Copy All</button>
                         <button onclick="window.print()" class="flex-1 py-3 bg-zinc-100 dark:bg-zinc-800 rounded-lg text-xs font-bold uppercase">Export</button>
                     </div>
                 </div>
@@ -101,151 +203,139 @@
             <!-- Loading -->
             <section id="loadingState" class="hidden flex-col items-center justify-center py-20">
                 <div class="spinner mb-4"></div>
-                <p class="text-zinc-500 font-bold text-xs uppercase tracking-widest text-center">Formatting Brigade Report...</p>
+                <p class="text-zinc-500 font-bold text-xs uppercase tracking-widest text-center">Finalizing Handover Accountability...</p>
             </section>
         </main>
-
-        <!-- Navigation -->
-        <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white dark:bg-zinc-900 border-t dark:border-zinc-800 grid grid-cols-2 py-2">
-            <button onclick="showSection('inputSection')" class="flex flex-col items-center gap-1 text-teal-600">
-                <span class="text-lg">🏠</span>
-                <span class="text-[9px] font-bold uppercase">Home</span>
-            </button>
-            <button onclick="showHistory()" class="flex flex-col items-center gap-1 text-zinc-400">
-                <span class="text-lg">📜</span>
-                <span class="text-[9px] font-bold uppercase">History</span>
-            </button>
-        </nav>
     </div>
 
     <script>
-        /**
-         * StationBrain Operational Logic
-         * Staffing Structure: 1 District Officer, 6 others (FF, LCpl, Cpl, Sgt)
-         */
+        function toggleDetail(id, val) {
+            document.getElementById(id).classList.toggle('hidden', val === 'no');
+        }
 
-        const RANKS = ["Firefighter", "Lance Corporal", "Corporal", "Sergeant", "District Officer"];
-        
-        let appState = { history: [], currentOutput: null };
+        async function processHandover() {
+            const overviewText = document.getElementById('rawInput').value.trim();
+            const checks = {};
+            document.querySelectorAll('.check-input').forEach(el => {
+                checks[el.getAttribute('data-key')] = el.value;
+            });
+
+            const classes = {
+                done: document.getElementById('classesDone').value,
+                details: document.getElementById('classDetails').value
+            };
+            const activities = {
+                done: document.getElementById('activitiesDone').value,
+                details: document.getElementById('activityDetails').value
+            };
+
+            showSection('loadingState');
+
+            // Constructing detailed data for the AI engine
+            const handoverData = {
+                overview: overviewText,
+                mandatory_checks: checks,
+                training: classes,
+                activities: activities
+            };
+
+            setTimeout(async () => {
+                const result = await mockGeminiHandover(handoverData);
+                renderHandoverResults(result);
+                showSection('resultsSection');
+            }, 1200);
+        }
+
+        function renderHandoverResults(data) {
+            const container = document.getElementById('resultCards');
+            container.innerHTML = '';
+
+            // 1. Overview Section
+            createCard(container, "Shift Overview", data.overview_summary);
+
+            // 2. Mandatory Checks Section
+            const checksHtml = Object.entries(data.checks_status).map(([key, status]) => {
+                const label = key.replace(/_/g, ' ');
+                let pillClass = "status-warning";
+                let text = "Not Stated";
+
+                if (status === 'yes') { pillClass = "status-completed"; text = "Completed"; }
+                if (status === 'no') { pillClass = "status-error"; text = "Not Completed"; }
+                if (status === 'not_stated') { pillClass = "status-warning"; text = "Needs Confirmation"; }
+
+                return `<div class="flex justify-between items-center py-1 border-b dark:border-zinc-800 text-sm">
+                            <span class="capitalize">${label}</span>
+                            <span class="status-pill ${pillClass}">${text}</span>
+                        </div>`;
+            }).join('');
+            createCard(container, "Mandatory Accountability", checksHtml, false);
+
+            // 3. Classes & Activities
+            createCard(container, "Training / Classes", data.training_summary);
+            createCard(container, "Activities", data.activities_summary);
+
+            // 4. Outstanding & Follow-ups
+            if (data.follow_up_questions.length > 0) {
+                const qList = `<ul class="list-disc ml-4 space-y-1 text-amber-700 dark:text-amber-200">
+                                ${data.follow_up_questions.map(q => `<li>${q}</li>`).join('')}
+                               </ul>`;
+                createCard(container, "Follow-up Questions", qList, true);
+            }
+        }
+
+        function createCard(container, title, content, isWarning = false) {
+            const card = document.createElement('div');
+            card.className = isWarning ? 'missing-info-card p-4 rounded-xl shadow-sm' : 'card p-4 rounded-xl shadow-sm';
+            card.innerHTML = `
+                <h3 class="text-[9px] font-extrabold ${isWarning ? 'text-amber-600' : 'text-zinc-400'} tracking-widest mb-2 uppercase">${title}</h3>
+                <div class="text-sm leading-snug">${content}</div>
+            `;
+            container.appendChild(card);
+        }
 
         function showSection(id) {
             ['inputSection', 'resultsSection', 'loadingState'].forEach(s => document.getElementById(s).classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
         }
 
-        function toggleTheme() {
-            document.documentElement.classList.toggle('dark');
-        }
-        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-
-        function loadSample() {
-            document.getElementById('rawInput').value = "Fire reported at a one bedroom apartment. On arrival, fire observed confined to the living room area. One medium jet consisting of two one and a half inch hose was brought into operation to control and extinguish the blaze. One occupant was assisted from the building. Ventilation was carried out. Unit responding was unit#5-19.";
-        }
-
-        function resetApp() { document.getElementById('rawInput').value = ''; showSection('inputSection'); }
-
-        async function processInput(mode) {
-            const input = document.getElementById('rawInput').value.trim();
-            if (!input) return;
-            showSection('loadingState');
-            
-            // Mock API Latency
-            setTimeout(async () => {
-                const result = await mockGeminiCall(mode, input);
-                appState.history.push({ mode, input, result });
-                renderResults(mode, result);
-                showSection('resultsSection');
-            }, 1000);
-        }
-
-        function renderResults(mode, data) {
-            const container = document.getElementById('resultCards');
-            document.getElementById('resultTitle').innerText = mode.replace(/_/g, ' ');
-            container.innerHTML = '';
-            
-            // Handle specific card order and formatting
-            const keys = Object.keys(data);
-            
-            keys.forEach(key => {
-                const value = data[key];
-                if (!value || (Array.isArray(value) && value.length === 0)) return;
-
-                const card = document.createElement('div');
-                const isNarrative = key === 'final_report';
-                const isWarning = ['missing_information', 'follow_up_questions', 'critical_gaps'].includes(key);
-                
-                card.className = isNarrative ? 'report-narrative-card p-4 rounded-lg shadow-sm' : 
-                                 (isWarning ? 'missing-info-card p-4 rounded-lg shadow-sm' : 'card p-4 rounded-lg shadow-sm');
-                
-                const label = key.replace(/_/g, ' ').toUpperCase();
-                
-                // Narrative report is one clean paragraph, others can be lists
-                let content = (isNarrative || !Array.isArray(value)) 
-                    ? `<p class="${isNarrative ? 'text-zinc-900 dark:text-zinc-100 font-medium leading-relaxed' : ''}">${value}</p>`
-                    : `<ul class="list-disc ml-4 space-y-1">${value.map(v => `<li>${v}</li>`).join('')}</ul>`;
-
-                card.innerHTML = `
-                    <h3 class="text-[9px] font-extrabold ${isWarning ? 'text-amber-600' : (isNarrative ? 'text-teal-600' : 'text-zinc-400')} tracking-widest mb-2">${label}</h3>
-                    <div class="text-sm leading-snug">${content}</div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function challengeThinking() {
-            const challenge = {
-                critical_gaps: [
-                    "Staffing check: Ensure unit# was manned by a District Officer and 6 personnel as per riding structure.",
-                    "Utility Isolation: No mention of electricity or gas status in the living room area.",
-                    "Cause of Fire: Origin of the blaze not mentioned (potential follow-up for relevant authority)."
-                ],
-                follow_up_questions: [
-                    "Was the occupant handed over to medical services?",
-                    "Were neighbors in adjacent units checked for smoke inhalation?"
-                ]
-            };
-            renderResults("Operational Analysis", challenge);
-            document.getElementById('challengeBtn').classList.add('hidden');
-        }
-
-        function copyResults() {
-            const report = document.querySelector('.report-narrative-card p')?.innerText || "";
-            navigator.clipboard.writeText(report);
-            alert("Narrative report copied to clipboard.");
-        }
-
-        function showHistory() {
-            alert(`Session history: ${appState.history.length} entries. Data exists for current runtime only.`);
-        }
+        function resetApp() { location.reload(); }
 
         /**
-         * MOCK ENGINE - Updated for Rank Structure and Brigade Style
+         * MOCK ENGINE - Handles the new structured Handover logic
          */
-        async function mockGeminiCall(mode, input) {
-            // Internal Logic: unit# used instead of engine. DO + 6 structure.
-            if (mode === 'small_incident_report') {
-                return {
-                    final_report: "At arrival at the given location, the brigade observed fire confined to a one bedroom apartment / living room area and one medium jet consisting of (two) one and a half inch hose was brought into operation to control and extinguish the blaze. One occupant was assisted from the building and ventilation was carried out. Seeing no threat of re-ignition, the brigade then made up to refill the unit pump and tank and return to base in unit#5-19.",
-                    missing_information: ["Property owner details", "Status of utility isolation", "Occupant injury status"],
-                    confidence_notes: "Report follows standard brigade narrative. Unit number was provided as unit#5-19.",
-                    follow_up_questions: ["Was a secondary search conducted?", "Was the scene handed over to the police?"]
-                };
-            }
+        async function mockGeminiHandover(data) {
+            const followUps = [];
+            
+            // Logically identify missing items
+            Object.entries(data.mandatory_checks).forEach(([key, val]) => {
+                if (val === 'not_stated') {
+                    followUps.push(`Was the ${key.replace(/_/g, ' ')} completed and confirmed?`);
+                }
+            });
 
-            if (mode === 'shift_handover') {
-                return {
-                    overview: "Shift dominated by apartment fire at 02:45 hrs.",
-                    staffing_status: "Riding unit structure maintained: 1 District Officer, 1 Sergeant, 1 Corporal, 2 Lance Corporals, 2 Firefighters.",
-                    equipment_concerns: ["unit#5-19 pump checked and refilled.", "One length of 1.5 inch hose tagged for inspection."],
-                    pending_tasks: ["Complete small incident report for unit#5-19", "Check hydrant pressure in Sector 5"]
-                };
+            if (data.training.done === 'yes' && !data.training.details) {
+                followUps.push("What were the specific details of the classes conducted?");
             }
 
             return {
-                summary: "Operational data processed for " + mode,
-                unit_involved: "unit#[not provided]",
-                missing_information: ["Please specify the unit# used."]
+                overview_summary: data.overview || "No rough notes provided. Routine shift assumed.",
+                checks_status: data.mandatory_checks,
+                training_summary: data.training.done === 'yes' 
+                    ? `<strong>Classes Completed:</strong> ${data.training.details || "Details not provided."}` 
+                    : "No classes conducted during this shift.",
+                activities_summary: data.activities.done === 'yes' 
+                    ? `<strong>Activities Completed:</strong> ${data.activities.details || "Details not provided."}` 
+                    : "No station activities recorded.",
+                follow_up_questions: followUps
             };
+        }
+
+        // --- Standard App Logic ---
+        function toggleTheme() { document.documentElement.classList.toggle('dark'); }
+        document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+        function copyResults() {
+            navigator.clipboard.writeText(document.getElementById('resultCards').innerText);
+            alert("Handover copied to clipboard.");
         }
     </script>
 </body>
