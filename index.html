@@ -7,19 +7,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* Design Tokens & Color System */
         :root {
-            /* Neutrals */
-            --bg-page: #f8fafc;
+            --bg-page: #f1f5f9;
             --bg-card: #ffffff;
             --text-main: #0f172a;
             --text-muted: #64748b;
-            --border-color: #e2e8f0;
-            /* Accents */
+            --border-color: #cbd5e1;
             --accent-blue: #2563eb;
             --accent-green: #059669;
             --accent-red: #dc2626;
-            --focus-ring: rgba(37, 99, 235, 0.2);
+            --focus-ring: rgba(37, 99, 235, 0.15);
         }
 
         .dark {
@@ -29,99 +26,75 @@
             --text-muted: #94a3b8;
             --border-color: #334155;
             --accent-blue: #3b82f6;
-            --focus-ring: rgba(59, 130, 246, 0.3);
+            --accent-green: #10b981;
+            --focus-ring: rgba(59, 130, 246, 0.2);
         }
 
-        body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--bg-page); 
-            color: var(--text-main);
-            transition: background-color 0.3s, color 0.3s;
-            line-height: 1.5;
-        }
-
-        /* Standardized Component Styling */
-        .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1rem; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-page); color: var(--text-main); transition: background-color 0.3s; }
+        .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1.25rem; }
         
+        /* High Visibility Inputs */
         input, select, textarea {
-            width: 100%; padding: 0.75rem 1rem; border-radius: 0.75rem;
-            border: 1.5px solid var(--border-color); background-color: var(--bg-card);
-            color: var(--text-main); font-size: 1rem; transition: all 0.2s;
+            width: 100%; padding: 0.85rem 1rem; border-radius: 0.75rem;
+            border: 2px solid var(--border-color); background-color: var(--bg-card);
+            color: var(--text-main); font-size: 1rem; outline: none; transition: all 0.2s;
         }
-        
-        input:focus, select:focus, textarea:focus {
-            outline: none; border-color: var(--accent-blue);
-            box-shadow: 0 0 0 4px var(--focus-ring);
-        }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 4px var(--focus-ring); }
 
-        /* Unified Button System */
+        /* Button System */
         .btn {
             display: inline-flex; align-items: center; justify-content: center;
-            padding: 0.875rem 1.5rem; border-radius: 0.75rem; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.025em; font-size: 0.75rem;
-            transition: all 0.2s; cursor: pointer; border: 1.5px solid transparent;
+            padding: 1rem 1.5rem; border-radius: 0.75rem; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem;
+            transition: all 0.2s; border: 2px solid transparent;
         }
+        .btn-primary { background-color: var(--accent-blue); color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .btn-secondary { background-color: var(--bg-card); border-color: var(--text-main); color: var(--text-main); }
+        .btn-ghost-red { color: var(--accent-red); font-size: 0.7rem; font-weight: 700; text-decoration: underline; background: transparent; }
 
-        .btn-primary { background-color: var(--accent-blue); color: #ffffff; }
-        .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
-
-        .btn-secondary { background-color: transparent; border-color: var(--border-color); color: var(--text-main); }
-        .btn-secondary:active { background-color: var(--border-color); }
-
-        .btn-ghost-red { color: var(--accent-red); font-size: 0.7rem; border: none; background: transparent; }
-
-        /* Status Colors */
-        .text-success { color: var(--accent-green); }
-        .text-danger { color: var(--accent-red); }
-        .report-accent { border-left: 4px solid var(--accent-blue); }
-
-        .spinner { 
-            border: 3px solid rgba(0,0,0,0.1); width: 24px; height: 24px; border-radius: 50%; 
-            border-left-color: var(--accent-blue); animation: spin 1s linear infinite; 
-        }
+        .report-accent { border-left: 6px solid var(--accent-blue); }
+        .spinner { border: 3px solid rgba(0,0,0,0.1); width: 24px; height: 24px; border-radius: 50%; border-left-color: var(--accent-blue); animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
-        .no-scrollbar::-webkit-scrollbar { display: none; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body class="light">
 
-    <div class="max-w-md mx-auto flex flex-col min-h-screen shadow-sm relative">
+    <div class="max-w-md mx-auto flex flex-col min-h-screen relative shadow-2xl bg-inherit">
         
         <!-- Header -->
-        <header class="p-4 flex justify-between items-center sticky top-0 z-50 card border-b rounded-none">
+        <header class="p-4 flex justify-between items-center sticky top-0 z-50 card border-b rounded-none shadow-sm">
             <div>
                 <h1 class="font-extrabold text-xl tracking-tight">StationBrain</h1>
-                <p id="viewLabel" class="text-[10px] uppercase tracking-widest font-bold text-blue-600">Workstation</p>
+                <p id="viewLabel" class="text-[10px] uppercase tracking-widest font-black text-blue-600">Operational Support</p>
             </div>
-            <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800" id="themeIcon">🌙</button>
+            <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-800" id="themeIcon">🌙</button>
         </header>
 
         <!-- Main Viewport -->
         <main id="appBody" class="flex-1 p-4 space-y-6">
-            <!-- Dynamic components injected here -->
+            <!-- Dynamic Content -->
         </main>
 
-        <!-- Navigation Context -->
-        <nav id="bottomNav" class="p-4 card border-t rounded-none space-y-3 hidden sticky bottom-0">
+        <!-- Fixed Navigation -->
+        <nav id="bottomNav" class="p-4 card border-t rounded-none space-y-4 hidden sticky bottom-0 z-40 bg-inherit">
             <div class="flex gap-2">
                 <button onclick="setView('home')" class="btn btn-secondary flex-1">Back Home</button>
                 <button id="actionBtn" class="btn btn-primary flex-[2]">Generate</button>
             </div>
             <div class="text-center">
-                <button onclick="clearCurrentForm()" class="btn btn-ghost-red">Clear All Inputs</button>
+                <button onclick="clearCurrentForm()" class="btn btn-ghost-red uppercase">Clear All Entries</button>
             </div>
         </nav>
 
-        <!-- App Footer Info -->
-        <footer class="p-6 border-t dark:border-slate-800 text-center space-y-4">
-            <div class="flex justify-center gap-4 text-[11px] font-bold uppercase tracking-wider text-blue-600">
+        <!-- Bottom Footer Content -->
+        <footer class="p-8 border-t dark:border-slate-800 space-y-6">
+            <div class="flex justify-center gap-6 text-[11px] font-black uppercase tracking-widest text-blue-600">
                 <button onclick="setView('about')">About</button>
-                <span class="text-gray-300">|</span>
+                <span class="text-slate-300">|</span>
                 <button onclick="setView('disclaimer')">Disclaimer</button>
             </div>
-            <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">
+            <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">
                 Created by L/Cpl. R. Marshall of the Portland Division
             </p>
         </footer>
@@ -129,15 +102,10 @@
 
     <script>
         const state = {
-            theme: 'light',
-            view: 'home',
-            mode: null,
-            incidentType: 'house_fire',
-            formData: {},
-            report: null
+            theme: 'light', view: 'home', mode: null, incidentType: 'house_fire', formData: {}, report: null
         };
 
-        const CHECKS = ["Occurrence Book", "Telephone Book", "Unit Checked", "Equipment Checked", "Checklist Signed", "Forecast Done", "Status Book Written Up", "Status Book Signed"];
+        const CHECKS = ["Occurrence Book Checked", "Telephone Book Checked", "Unit Checked", "Equipment Checked", "Checklist Signed", "Forecast Done", "Status Book Written Up", "Status Book Signed"];
 
         function toggleTheme() {
             state.theme = state.theme === 'light' ? 'dark' : 'light';
@@ -148,6 +116,12 @@
         function setView(v, mode = null) {
             state.view = v;
             if (mode) state.mode = mode;
+            render();
+        }
+
+        function updateIncidentType(val) {
+            saveInputs();
+            state.incidentType = val;
             render();
         }
 
@@ -166,13 +140,13 @@
                 label.innerText = state.mode.replace('_', ' ');
                 renderInput(body);
                 document.getElementById('actionBtn').onclick = handleGenerate;
-                document.getElementById('actionBtn').innerText = 'Generate Report';
+                document.getElementById('actionBtn').innerText = 'Process Report';
             } else if (state.view === 'result') {
                 nav.classList.remove('hidden');
-                label.innerText = 'Result';
+                label.innerText = 'Report Result';
                 renderResult(body);
                 document.getElementById('actionBtn').onclick = copyReport;
-                document.getElementById('actionBtn').innerText = 'Copy Report';
+                document.getElementById('actionBtn').innerText = 'Copy for Word';
             } else if (state.view === 'about') {
                 label.innerText = 'About';
                 renderAbout(body);
@@ -185,17 +159,17 @@
 
         function renderHome(container) {
             const menus = [
-                { id: 'incident', title: 'Incident Report', icon: '📄', color: 'text-blue-500' },
-                { id: 'handover', title: 'Shift Handover', icon: '🔄', color: 'text-blue-500' },
-                { id: 'debriefing', title: 'Debriefing', icon: '📝', color: 'text-blue-500' }
+                { id: 'incident', title: 'Incident Report', icon: '📄', desc: 'Narrative & Admin' },
+                { id: 'handover', title: 'Shift Handover', icon: '🔄', desc: 'Accountability' },
+                { id: 'debriefing', title: 'Debriefing', icon: '📝', desc: 'Post-Incident Review' }
             ];
-            container.innerHTML = `<div class="grid gap-3 pt-2">
+            container.innerHTML = `<div class="grid gap-4 pt-2">
                 ${menus.map(m => `
-                    <button onclick="setView('input', '${m.id}')" class="card p-6 flex items-center gap-4 text-left hover:border-blue-500 transition-colors">
-                        <span class="text-3xl">${m.icon}</span>
+                    <button onclick="setView('input', '${m.id}')" class="card p-6 flex items-center gap-5 text-left hover:border-blue-500 transition-all active:scale-95 shadow-sm">
+                        <span class="text-4xl">${m.icon}</span>
                         <div>
                             <h3 class="font-extrabold text-lg leading-tight">${m.title}</h3>
-                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Operational Support</p>
+                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">${m.desc}</p>
                         </div>
                     </button>
                 `).join('')}
@@ -205,133 +179,202 @@
         function renderInput(container) {
             if (state.mode === 'incident') {
                 container.innerHTML = `
-                    <div class="space-y-4">
-                        <select id="f_incidentType" onchange="state.incidentType=this.value; render();">
+                <div class="space-y-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Incident Classification</label>
+                        <select id="f_incidentType" onchange="updateIncidentType(this.value)">
                             <option value="house_fire" ${state.incidentType === 'house_fire' ? 'selected' : ''}>House Fire</option>
+                            <option value="mv_fire" ${state.incidentType === 'mv_fire' ? 'selected' : ''}>Motor Vehicle Fire</option>
+                            <option value="bush_rubbish_electrical" ${state.incidentType === 'bush_rubbish_electrical' ? 'selected' : ''}>Bush / Rubbish / Electrical Fire</option>
                             <option value="mva" ${state.incidentType === 'mva' ? 'selected' : ''}>Motor Vehicle Accident</option>
                             <option value="false_alarm" ${state.incidentType === 'false_alarm' ? 'selected' : ''}>False Alarm</option>
+                            <option value="special_service" ${state.incidentType === 'special_service' ? 'selected' : ''}>Special Service</option>
                         </select>
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="date" id="f_dateCall" placeholder="Date of call" value="${state.formData.dateCall || ''}">
-                            <input type="time" id="f_timeCall" placeholder="Time of call" value="${state.formData.timeCall || ''}">
-                        </div>
-                        <input type="text" id="f_loc" placeholder="Location" value="${state.formData.loc || ''}">
-                        <input type="text" id="f_unit" placeholder="unit# (e.g. 5-19)" value="${state.formData.unit || ''}">
-                        <textarea id="f_notes" rows="4" placeholder="Operational details...">${state.formData.notes || ''}</textarea>
                     </div>
-                `;
+
+                    <div class="card p-5 space-y-4">
+                        <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Call & Response Data</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="text-[10px] uppercase text-slate-400 font-bold">Date of Call</label><input type="date" id="f_dateCall" value="${state.formData.dateCall || ''}"></div>
+                            <div><label class="text-[10px] uppercase text-slate-400 font-bold">Time of Call</label><input type="time" id="f_timeCall" value="${state.formData.timeCall || ''}"></div>
+                        </div>
+                        <input type="text" id="f_respondingStation" placeholder="Responding station" value="${state.formData.respondingStation || ''}">
+                        <select id="f_howCalled"><option value="">How called?</option><option value="Telephone">Telephone</option><option value="Verbal">Verbal</option></select>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div><label class="text-[10px] uppercase text-slate-400 font-bold">Time Leaving</label><input type="time" id="f_timeLeaving" value="${state.formData.timeLeaving || ''}"></div>
+                            <div><label class="text-[10px] uppercase text-slate-400 font-bold">Time Return</label><input type="time" id="f_timeReturn" value="${state.formData.timeReturn || ''}"></div>
+                        </div>
+                    </div>
+
+                    <div class="card p-5 space-y-4">
+                        <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Location & Risk</p>
+                        <input type="text" id="f_loc" placeholder="Location" value="${state.formData.loc || ''}">
+                        <input type="text" id="f_typePremises" placeholder="Type of premises" value="${state.formData.typePremises || ''}">
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="text" id="f_distance" placeholder="Distance (km)" value="${state.formData.distance || ''}">
+                            <input type="number" id="f_menPresent" placeholder="No. of men" value="${state.formData.menPresent || ''}">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="text" id="f_estRisk" placeholder="Estimated risk" value="${state.formData.estRisk || ''}">
+                            <input type="text" id="f_estLoss" placeholder="Estimated loss" value="${state.formData.estLoss || ''}">
+                        </div>
+                    </div>
+
+                    <div class="card p-5 space-y-4">
+                        <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Parties & Origin</p>
+                        <input type="text" id="f_owner" placeholder="Owner" value="${state.formData.owner || ''}">
+                        <input type="text" id="f_occupier" placeholder="Occupier" value="${state.formData.occupier || ''}">
+                        <input type="text" id="f_supposedOrigin" placeholder="Supposed origin of fire" value="${state.formData.supposedOrigin || ''}">
+                    </div>
+
+                    <div class="space-y-4">
+                        <p class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Operational Details</p>
+                        <input type="text" id="f_unit" placeholder="unit# (e.g. 5-19)" value="${state.formData.unit || ''}">
+                        ${renderDynamicIncidentFields()}
+                        <textarea id="f_notes" rows="5" placeholder="Narrative details / observations...">${state.formData.notes || ''}</textarea>
+                    </div>
+                </div>`;
             } else if (state.mode === 'handover') {
                 container.innerHTML = `
-                    <div class="space-y-4">
-                        <div class="card p-4 space-y-3">
+                    <div class="space-y-6">
+                        <div class="card p-5 space-y-3">
                             <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Mandatory Checks</p>
                             ${CHECKS.map(c => `
                                 <div class="flex justify-between items-center text-sm border-b pb-2 dark:border-slate-700">
-                                    <span>${c}</span>
+                                    <span class="font-medium">${c}</span>
                                     <select class="sh-check w-20 font-bold text-blue-600 bg-transparent" data-label="${c}">
                                         <option value="not_stated">?</option><option value="yes">YES</option><option value="no">NO</option>
                                     </select>
                                 </div>
                             `).join('')}
                         </div>
-                        <textarea id="f_summary" rows="4" placeholder="Summary of shift..."></textarea>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = `<textarea id="f_notes" rows="10" placeholder="Enter debrief details..."></textarea>`;
+                        <textarea id="f_summary" rows="4" placeholder="Shift summary..."></textarea>
+                        <textarea id="f_personnel" rows="2" placeholder="Personnel status..."></textarea>
+                    </div>`;
+            } else if (state.mode === 'debriefing') {
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <textarea id="f_overview" rows="4" placeholder="Event Overview"></textarea>
+                        <textarea id="f_well" rows="3" placeholder="What went well?"></textarea>
+                        <textarea id="f_improve" rows="3" placeholder="What could improve?"></textarea>
+                        <textarea id="f_lessons" rows="3" placeholder="Lessons learned"></textarea>
+                    </div>`;
             }
         }
 
-        function renderResult(container) {
-            container.innerHTML = `
-                <div class="space-y-4">
-                    <div class="card p-5 report-accent shadow-sm">
-                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Narrative</h3>
-                        <p class="text-sm leading-relaxed whitespace-pre-wrap">${state.report.narrative}</p>
-                    </div>
-                    ${state.report.checks ? `
-                        <div class="card p-4 space-y-2">
-                            <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Checklist Summary</h3>
-                            ${state.report.checks.map(c => `
-                                <div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700">
-                                    <span>${c.label}</span>
-                                    <span class="font-bold ${c.val === 'yes' ? 'text-success' : (c.val === 'no' ? 'text-danger' : 'text-slate-400')}">${c.status}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        }
-
-        function renderAbout(container) {
-            container.innerHTML = `
-                <div class="card p-6 space-y-4 text-sm">
-                    <h2 class="font-extrabold text-lg">About StationBrain</h2>
-                    <p>Developed by <strong>L/CPL R. Marshall</strong> to assist with operational reporting and handovers.</p>
-                    <p>Designed for rapid drafting under time pressure, utilizing real Jamaica Fire Brigade station practices.</p>
-                    <button onclick="setView('home')" class="btn btn-secondary w-full">Back to Menu</button>
-                </div>
-            `;
-        }
-
-        function renderDisclaimer(container) {
-            container.innerHTML = `
-                <div class="card p-6 space-y-4 text-sm">
-                    <h2 class="font-extrabold text-lg text-danger">Disclaimer</h2>
-                    <p>StationBrain is an <strong>unofficial support tool</strong> and does not replace official JFB reporting procedures.</p>
-                    <p>All reports must be reviewed by the appropriate District Officer. L/CPL R. Marshall accepts no liability for errors.</p>
-                    <button onclick="setView('home')" class="btn btn-secondary w-full">Back to Menu</button>
-                </div>
-            `;
+        function renderDynamicIncidentFields() {
+            const t = state.incidentType;
+            if (['house_fire', 'bush_rubbish_electrical', 'mv_fire'].includes(t)) {
+                return `<input type="text" id="f_jet" placeholder="Hose / Jet details (e.g. one 1.5 inch jet)">`;
+            } else if (t === 'mva') {
+                return `<input type="text" id="f_vcount" placeholder="Vehicles involved">
+                        <input type="text" id="f_trapped" placeholder="Persons trapped/assisted">`;
+            } else if (t === 'false_alarm') {
+                return `<input type="text" id="f_cause" placeholder="Cause of alarm">
+                        <input type="text" id="f_left" placeholder="Person left with">`;
+            } else if (t === 'special_service') {
+                return `<input type="text" id="f_sstype" placeholder="Service type (Entry, Padlock...)">
+                        <input type="text" id="f_tools" placeholder="Tools used">`;
+            }
+            return '';
         }
 
         function handleGenerate() {
             saveInputs();
             const body = document.getElementById('appBody');
-            body.innerHTML = `<div class="flex flex-col items-center py-20 gap-4"><div class="spinner"></div><p class="text-xs font-bold uppercase tracking-widest text-slate-400">Processing Data...</p></div>`;
+            body.innerHTML = `<div class="flex flex-col items-center py-20 gap-4"><div class="spinner"></div><p class="text-xs font-black uppercase tracking-widest text-slate-400">Processing Data...</p></div>`;
             
             setTimeout(() => {
-                const checks = [];
-                document.querySelectorAll('.sh-check').forEach(el => {
-                    checks.push({ 
-                        label: el.dataset.label, 
-                        val: el.value, 
-                        status: el.value === 'yes' ? '✅ DONE' : (el.value === 'no' ? '❌ NO' : '⚠️ ?') 
-                    });
-                });
-                
                 const d = state.formData;
-                let narrative = "";
+                const r = { narrative: '', admin: {}, checks: [], timestamp: new Date().toLocaleString('en-JM', { dateStyle: 'medium', timeStyle: 'short' }) };
+
                 if (state.mode === 'incident') {
-                    narrative = `At arrival at the given location, brigade observed ${state.incidentType.replace('_', ' ')}. ${d.notes || ''} Seeing no threat of re-ignition, brigade refilled unit pump and tank and returned in unit#${d.unit || '[not entered]'}.`;
+                    r.admin = {
+                        "Date of call": d.dateCall || "Not Entered", "Time of call": d.timeCall || "Not Entered",
+                        "Responding station": d.respondingStation || "Not Entered", "Type of premises": d.typePremises || "Not Entered",
+                        "Location": d.loc || "Not Entered", "How called": d.howCalled || "Not Entered",
+                        "Time of leaving": d.timeLeaving || "Not Entered", "Time of return": d.timeReturn || "Not Entered",
+                        "Distance": d.distance ? d.distance + ' km' : "Not Entered", "No. of men": d.menPresent || "Not Entered",
+                        "Estimated risk": d.estRisk || "Not Entered", "Estimated loss": d.estLoss || "Not Entered",
+                        "Owner": d.owner || "Not Entered", "Occupier": d.occupier || "Not Entered", "Supposed origin": d.supposedOrigin || "Not Entered"
+                    };
+                    const unit = d.unit || '[unit# not entered]';
+                    if (['house_fire', 'bush_rubbish_electrical', 'mv_fire'].includes(state.incidentType)) {
+                        r.narrative = `At arrival at the given location, brigade observed ${state.incidentType.replace(/_/g, ' ')} and ${d.jet || 'standard operations'} was brought into operation to control and extinguish the blaze. ${d.notes || ''} Seeing no threat of re-ignition, brigade made up to refill unit pump and tank and returned in unit#${unit}.`;
+                    } else if (state.incidentType === 'mva') {
+                        r.narrative = `At arrival at the given location, brigade observed an MVA involving ${d.vcount || 'vehicles'}. ${d.trapped || 'No persons'} were assisted. ${d.notes || ''} Scene handed over to authority and returned in unit#${unit}.`;
+                    } else {
+                        r.narrative = `Incident: ${state.incidentType.replace(/_/g, ' ')}. Brigade responded to location. ${d.notes || 'Operations conducted.'} Returned in unit#${unit}.`;
+                    }
                 } else if (state.mode === 'handover') {
-                    narrative = `SHIFT HANDOVER: ${d.summary || 'Routine shift operations.'}`;
+                    document.querySelectorAll('.sh-check').forEach(el => r.checks.push({ label: el.dataset.label, status: el.value === 'yes' ? '✅ DONE' : (el.value === 'no' ? '❌ NO' : '⚠️ ?'), val: el.value }));
+                    r.narrative = `Summary: ${d.summary || 'Routine shift.'}\n\nPersonnel: ${d.personnel || 'Not stated.'}`;
                 } else {
-                    narrative = `DEBRIEF: ${d.notes || 'No notes provided.'}`;
+                    r.narrative = `DEBRIEF: ${d.overview || 'Not Entered'}\n\nWell: ${d.well || 'Not Entered'}\nImprove: ${d.improve || 'Not Entered'}`;
                 }
 
-                state.report = { narrative, checks: checks.length ? checks : null };
+                state.report = r;
                 state.view = 'result';
                 render();
             }, 800);
         }
 
+        function renderResult(container) {
+            const r = state.report;
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="text-[9px] font-bold text-blue-600 text-right uppercase tracking-widest px-1">Finalized: ${r.timestamp}</div>
+                    <div class="card p-6 report-accent shadow-sm">
+                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3">Operational Narrative</h3>
+                        <p class="text-sm leading-relaxed whitespace-pre-wrap">${r.narrative}</p>
+                    </div>
+                    ${Object.keys(r.admin).length ? `
+                        <div class="card p-5 space-y-3">
+                            <h3 class="text-[10px] font-black uppercase text-blue-600 tracking-widest mb-1">Administrative Data</h3>
+                            ${Object.entries(r.admin).map(([k,v]) => `
+                                <div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700">
+                                    <span class="text-slate-500">${k}</span><span class="font-bold text-right ml-2">${v}</span>
+                                </div>`).join('')}
+                        </div>` : ''}
+                    ${r.checks.length ? `
+                        <div class="card p-5 space-y-2">
+                            <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Checklist Summary</h3>
+                            ${r.checks.map(c => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${c.label}</span><span class="font-bold">${c.status}</span></div>`).join('')}
+                        </div>` : ''}
+                </div>`;
+        }
+
+        function renderAbout(container) {
+            container.innerHTML = `<div class="card p-8 space-y-6 text-sm leading-relaxed">
+                <h2 class="font-black text-xl text-blue-600">About StationBrain</h2>
+                <p>Developed primarily by <strong>L/CPL R. Marshall</strong> to assist with operational reporting, shift handovers, and debriefing under time pressure.</p>
+                <p>Logic and reporting styles reflect station practice as specified by L/CPL R. Marshall, based on real Jamaica Fire Brigade operational practice.</p>
+                <button onclick="setView('home')" class="btn btn-secondary w-full">Back to Menu</button>
+            </div>`;
+        }
+
+        function renderDisclaimer(container) {
+            container.innerHTML = `<div class="card p-8 space-y-6 text-sm leading-relaxed">
+                <h2 class="font-black text-xl text-red-600">Disclaimer</h2>
+                <p>StationBrain is an <strong>unofficial support tool</strong>. It does not replace official JFB SOPs or reporting procedures.</p>
+                <p>Reports must be reviewed by the appropriate District Officer. L/CPL R. Marshall accepts no liability for errors.</p>
+                <button onclick="setView('home')" class="btn btn-secondary w-full">Back to Menu</button>
+            </div>`;
+        }
+
         function saveInputs() {
-            document.querySelectorAll('input, textarea, select').forEach(i => {
-                if (i.id) state.formData[i.id.replace('f_', '')] = i.value;
-            });
+            document.querySelectorAll('input, textarea, select').forEach(i => { if (i.id) state.formData[i.id.replace('f_', '')] = i.value; });
         }
 
         function clearCurrentForm() {
-            if (confirm("Clear all current inputs?")) {
-                state.formData = {};
-                render();
-            }
+            if (confirm("Clear all current inputs?")) { state.formData = {}; render(); }
         }
 
         async function copyReport() {
-            const text = `${state.report.narrative}\n\nGenerated via StationBrain\nCreated by L/Cpl R. Marshall`;
+            const r = state.report;
+            let text = `REPORT: ${state.mode.toUpperCase()}\n-----------------------------------\n`;
+            if (Object.keys(r.admin).length) text += `ADMIN DATA\n` + Object.entries(r.admin).map(([k,v]) => `${k}: ${v}`).join('\n') + `\n\n`;
+            text += `NARRATIVE\n${r.narrative}\n\nGenerated via StationBrain`;
             await navigator.clipboard.writeText(text);
             alert("Report copied successfully.");
         }
