@@ -36,7 +36,7 @@
             transition: all 0.2s; border: 2.5px solid transparent; cursor: pointer;
         }
         .btn-primary { background-color: var(--accent-blue); color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .btn-secondary { background-color: var(--bg-card); border-color: var(--text-main); color: var(--text-main); border: 2px solid; }
+        .btn-secondary { background-color: var(--bg-card); border-color: var(--text-main); color: var(--text-main); border: 2.2px solid; }
         .btn-ghost-red { color: var(--accent-red); font-size: 0.75rem; font-weight: 800; text-decoration: underline; background: transparent; }
         
         .report-accent { border-left: 6px solid var(--accent-blue); }
@@ -65,7 +65,7 @@
                 <button onclick="setView('home')" class="btn btn-secondary flex-1">Menu</button>
                 <button id="actionBtn" class="btn btn-primary flex-[2]">Generate</button>
             </div>
-            <button onclick="clearCurrentForm()" class="btn btn-ghost-red w-full uppercase">Wipe All Current Entries</button>
+            <button onclick="clearCurrentForm()" class="btn btn-ghost-red w-full uppercase">Wipe Current Entries</button>
         </nav>
 
         <footer class="p-8 border-t dark:border-slate-800 space-y-8 bg-slate-50 dark:bg-slate-900/40">
@@ -74,11 +74,9 @@
                 <button onclick="setView('about')">About</button>
                 <button onclick="setView('disclaimer')">Legal</button>
             </div>
-            <div class="space-y-1">
-                <p class="text-[9px] font-bold text-slate-400 text-center uppercase tracking-widest">
-                    Created by L/Cpl. R. Marshall - Portland Division
-                </p>
-            </div>
+            <p class="text-[9px] font-bold text-slate-400 text-center uppercase tracking-widest">
+                Created by L/Cpl. R. Marshall - Portland Division
+            </p>
         </footer>
     </div>
 
@@ -162,7 +160,8 @@
             const fd = state.formData;
             const commonHeader = `
                 <div class="grid grid-cols-2 gap-3">
-                    <div><label>Watch</label><select id="f_watch"><option value="">Select</option>
+                    <div><label>Watch</label><select id="f_watch">
+                        <option value="">Select</option>
                         <option value="A" ${fd.watch==='A'?'selected':''}>Watch A</option><option value="B" ${fd.watch==='B'?'selected':''}>Watch B</option>
                         <option value="C" ${fd.watch==='C'?'selected':''}>Watch C</option><option value="D" ${fd.watch==='D'?'selected':''}>Watch D</option>
                     </select></div>
@@ -173,7 +172,7 @@
                 container.innerHTML = `
                 <div class="space-y-6">
                     ${commonHeader}
-                    <div><label>Classification</label><select id="f_incidentType" onchange="saveInputs(); state.incidentType=this.value; render();">
+                    <div><label>Incident Classification</label><select id="f_incidentType" onchange="saveInputs(); state.incidentType=this.value; render();">
                         <option value="house_fire" ${state.incidentType==='house_fire'?'selected':''}>House Fire</option>
                         <option value="mv_fire" ${state.incidentType==='mv_fire'?'selected':''}>Motor Vehicle Fire</option>
                         <option value="bush_rubbish_electrical" ${state.incidentType==='bush_rubbish_electrical'?'selected':''}>Bush / Rubbish / Electrical</option>
@@ -249,9 +248,25 @@
 
                 if (state.mode === 'incident') {
                     r.admin = { 
-                        "Classification": state.incidentType.replace(/_/g, ' ').toUpperCase(), "Watch": d.watch || "Not Entered", "DO": d.districtOfficer || "Not Entered",
-                        "Station": d.respondingStation || "Not Entered", "Date of Call": d.dateCall || "Not Entered", "Time of Call": d.timeCall || "Not Entered",
-                        "Type of Premises": d.typePremises || "Not Entered", "Location": d.loc || "Not Entered", "Distance": d.distance || "Not Entered", "Supposed Origin": d.supposedOrigin || "Not Entered", "Unit#": d.unit || "Not Entered"
+                        "Classification": state.incidentType.replace(/_/g, ' ').toUpperCase(),
+                        "Watch": d.watch || "Not Entered",
+                        "DO": d.districtOfficer || "Not Entered",
+                        "Station": d.respondingStation || "Not Entered",
+                        "Date of Call": d.dateCall || "Not Entered",
+                        "Time of Call": d.timeCall || "Not Entered",
+                        "How Called": d.howCalled || "Not Entered",
+                        "Time Leaving": d.timeLeaving || "Not Entered",
+                        "Time Return": d.timeReturn || "Not Entered",
+                        "Location": d.loc || "Not Entered",
+                        "Type of Premises": d.typePremises || "Not Entered",
+                        "Distance": d.distance ? d.distance + ' km' : "Not Entered",
+                        "No. of Men": d.menPresent || "Not Entered",
+                        "Est Risk": d.estRisk || "Not Entered",
+                        "Est Loss": d.estLoss || "Not Entered",
+                        "Owner": d.owner || "Not Entered",
+                        "Occupier": d.occupier || "Not Entered",
+                        "Origin": d.supposedOrigin || "Not Entered",
+                        "Unit#": d.unit || "Not Entered"
                     };
                 } else if (state.mode === 'handover') {
                     CHECKS.forEach(c => { const val = fd[`check_${c.replace(/ /g,'_')}`]; r.checks.push({ label: c, status: val === 'yes' ? '✅ DONE' : (val === 'no' ? '❌ NO' : '⚠️ ?') }); });
@@ -287,7 +302,7 @@
             const h = type === 'about' ? "About StationBrain" : "Legal Disclaimer";
             const p = type === 'about' ? 
                 `StationBrain is a station-level decision-support and record-keeping tool created for use within the Jamaica Fire Brigade. It is designed to help on-duty crews organize station information, track routine activities, and generate clear, consistent reports that support smoother handovers and better situational awareness during a shift.<br><br>The app pulls together information that would normally live in paper logs, notebooks, or on the whiteboard and structures it in one place for easier review. StationBrain is intended to complement, not replace, the Brigade’s official procedures, command structure, or mandated documentation. All operational decisions must continue to follow official JFB policies, orders, and the established chain of command.<br><br>StationBrain is currently used on a personal basis at a single station and is developed from a frontline firefighter’s perspective with a focus on practicality, speed under pressure, and clarity of records rather than complex automation.` :
-                `1. General information only<br>StationBrain provides tools, logs, and reports for general information and record-keeping purposes at the station level. It does not provide professional, legal, medical, or safety-critical advice and must not be treated as the final authority for any operational, tactical, or staffing decision.<br><br>2. Not an official Jamaica Fire Brigade system<br>StationBrain is a personal tool used within the Jamaica Fire Brigade and is not an official, authorized, or mandated JFB system. It does not replace any official Brigade systems, forms, reports, or documentation and must not be used where the Brigade requires specific official records or platforms. In any conflict between StationBrain and official JFB policies, the official policies and orders always prevail.<br><br>3. No emergency or incident command function<br>StationBrain is not an emergency notification system, incident command platform, or life-safety device. It must never be relied on as the sole source for incident information, crew status, resource availability, or tactical decisions. Users must always follow official radio procedures, command decisions, and safety protocols.<br><br>4. No professional, medical, or legal advice<br>Nothing in StationBrain, including any data, analytics, guidance, or generated reports, is intended to constitute medical advice, legal advice, or any other kind of professional advice. Users must rely on their training, supervisors, and qualified professionals when making decisions that could affect health, safety, employment, or legal rights.<br><br>5. User responsibility<br>Users are solely responsible for the accuracy, completeness, and timeliness of the information they enter into StationBrain and for how they interpret and act on any output. Any reliance placed on the app’s content, logs, or reports is at the user’s own risk and must always be checked against current Brigade policies, training, and supervisor direction.<br><br>6. No data storage, transmission, or external backup<br>StationBrain is designed so that data entered into the app is not transmitted to external servers and is not stored outside the local environment in which it is running (for example, a single device or browser session, depending on the implementation). No operational data is intentionally sent to third parties, cloud services, or remote databases from within the app.<br><br>Because the app does not provide remote storage or cloud backup, users are responsible for exporting, printing, or otherwise preserving any records that need to be kept under Brigade policy. If data is cleared, lost, or the device fails, the information may not be recoverable.<br><br>7. No guarantee of accuracy, availability, or data retention<br>StationBrain and its contents are provided “as is,” without any warranties of completeness, reliability, accuracy, or availability. There is no guarantee that the app will be free from errors, bugs, data loss, or interruptions. The developer accepts no responsibility for any loss, damage, or consequence arising from the use of, or inability to use, StationBrain, including any loss of data that is not separately backed up by the user through official channels.<br><br>8. Third-party platforms and devices<br>If StationBrain is accessed through a web browser, local network, or device managed by the Jamaica Fire Brigade or any third party, those platforms and devices may still collect logs or telemetry independent of this app. StationBrain does not control, and is not responsible for, any data collection or logging performed by browsers, operating systems, networks, or device owners.<br><br>9. No modification of laws or policies<br>StationBrain does not modify or override any law, standard, standing order, or Brigade policy. Users must always comply with applicable laws and the Jamaica Fire Brigade’s official rules and procedures.<br><br>This text is provided for general informational purposes only and is not legal advice. You should consider having it reviewed by a qualified legal professional or by the appropriate authority within the Jamaica Fire Brigade before relying on it in any official context.`;
+                `1. General information only<br>StationBrain provides tools, logs, and reports for general information and record-keeping purposes at the station level. It does not provide professional, legal, medical, or safety-critical advice and must not be treated as the final authority for any operational, tactical, or staffing decision.<br><br>2. Not an official Jamaica Fire Brigade system<br>StationBrain is a personal tool used within the Jamaica Fire Brigade and is not an official, authorized, or mandated JFB system. It does not replace any official Brigade systems, forms, reports, or documentation and must not be used where the Brigade requires specific official records or platforms. In any conflict between StationBrain and official JFB policies, the official policies and orders always prevail.<br><br>3. No emergency or incident command function<br>StationBrain is not an emergency notification system, incident command platform, or life-safety device. It must never be relied on as the sole source for incident information, crew status, resource availability, or tactical decisions. Users must always follow official radio procedures, command decisions, and safety protocols.<br><br>4. No professional, medical, or legal advice<br>Nothing in StationBrain, including any data, analytics, guidance, or generated reports, is intended to constitute medical advice, legal advice, or any other kind of professional advice. Users must rely on their training, supervisors, and qualified professionals when making decisions that could affect health, safety, employment, or legal rights.`;
 
             container.innerHTML = `<div class="card p-8 space-y-4 shadow-sm"><h2 class="font-black text-xl text-blue-600 dark:text-blue-400">${h}</h2><p class="text-sm leading-relaxed text-slate-600 dark:text-slate-400">${p}</p><button onclick="setView('home')" class="btn btn-secondary w-full">Back</button></div>`;
         }
