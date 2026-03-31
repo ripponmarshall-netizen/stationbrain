@@ -19,7 +19,6 @@
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-page); color: var(--text-main); transition: background-color 0.3s; height: 100%; }
         .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1.25rem; transition: background-color 0.3s, border-color 0.3s; }
         
-        /* Persistent Visual Hierarchy */
         label { display: block; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-label); margin-bottom: 0.5rem; }
         
         input, select, textarea {
@@ -30,7 +29,6 @@
         }
         input:focus, select:focus, textarea:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px var(--focus-ring); }
 
-        /* Navigation Button System */
         .btn {
             display: inline-flex; align-items: center; justify-content: center;
             padding: 1rem 1.5rem; border-radius: 0.75rem; font-weight: 800;
@@ -38,7 +36,7 @@
             transition: all 0.2s; border: 2.5px solid transparent; cursor: pointer;
         }
         .btn-primary { background-color: var(--accent-blue); color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .btn-secondary { background-color: var(--bg-card); border-color: var(--text-main); color: var(--text-main); }
+        .btn-secondary { background-color: var(--bg-card); border: 2.5px solid var(--text-main); color: var(--text-main); }
         .btn-ghost-red { color: var(--accent-red); font-size: 0.75rem; font-weight: 800; text-decoration: underline; background: transparent; }
         
         .report-accent { border-left: 6px solid var(--accent-blue); }
@@ -61,9 +59,8 @@
             <button onclick="toggleThemeManual()" class="p-2 rounded-full bg-slate-200 dark:bg-slate-800 text-lg" id="themeIcon">🌙</button>
         </header>
 
-        <!-- Dynamic Main Content -->
+        <!-- Dynamic Content -->
         <main id="appBody" class="flex-1 p-4 space-y-6">
-            <!-- Render Engine Targets This -->
         </main>
 
         <!-- Fixed Footer Navigation -->
@@ -75,7 +72,7 @@
             <button onclick="clearCurrentForm()" class="btn btn-ghost-red w-full uppercase">Wipe All Current Entries</button>
         </nav>
 
-        <!-- Permanent Info Navigation -->
+        <!-- Permanent Info Section -->
         <footer class="p-8 border-t dark:border-slate-800 space-y-8 bg-slate-50 dark:bg-slate-900/40">
             <div class="flex justify-center gap-4 text-[10px] font-black uppercase text-blue-600 dark:text-blue-400">
                 <button onclick="setView('home')">Home</button>
@@ -87,14 +84,13 @@
                 <p class="text-[9px] font-bold text-slate-400 text-center uppercase tracking-widest">
                     Created by L/Cpl. R. Marshall - Portland Division
                 </p>
-                <p class="text-[8px] text-slate-400 text-center uppercase opacity-50 tracking-tighter">Operational Support Tool (Unofficial)</p>
             </div>
         </footer>
     </div>
 
     <script>
         /**
-         * APP STATE
+         * STATE MANAGEMENT
          */
         let state = {
             theme: 'light', view: 'home', mode: null, incidentType: 'house_fire', formData: {}, 
@@ -104,7 +100,7 @@
         const CHECKS = ["Occurrence Book Checked", "Telephone Book Checked", "Unit Checked", "Equipment Checked", "Checklist Signed", "Forecast Done", "Status Book Written Up", "Status Book Signed"];
 
         /**
-         * THEME ENGINE (Auto Detect & Manual Override)
+         * THEME ENGINE
          */
         const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
         function updateTheme(isDark) {
@@ -118,7 +114,7 @@
         function toggleThemeManual() { updateTheme(state.theme === 'light'); }
 
         /**
-         * NAVIGATION & DATA CAPTURE
+         * NAVIGATION & DATA PERSISTENCE
          */
         function setView(v, mode = null) {
             saveInputs();
@@ -133,31 +129,10 @@
             });
         }
 
-        function clearCurrentForm() {
-            if (confirm("Clear all data in this entry?")) {
-                state.formData = {};
-                render();
-            }
-        }
-
-        function goHome() {
-            if (Object.keys(state.formData).length > 0 && state.view !== 'result') {
-                if(!confirm("Return to menu? Unsaved changes will be lost.")) return;
-            }
-            state.formData = {};
-            state.mode = null;
-            state.view = 'home';
-            render();
-        }
-
-        /**
-         * UI RENDER ENGINE
-         */
         function render() {
             const body = document.getElementById('appBody');
             const nav = document.getElementById('bottomNav');
             const label = document.getElementById('viewLabel');
-            
             body.innerHTML = '';
             nav.classList.add('hidden');
             label.innerText = state.mode ? state.mode.toUpperCase() : 'JFB Workstation';
@@ -183,22 +158,22 @@
         }
 
         function renderHome(container) {
-            const modules = [
-                { id: 'incident', title: 'Incident Report', icon: '📄', desc: 'Narrative & Administration' },
-                { id: 'handover', title: 'Shift Handover', icon: '🔄', desc: 'Watch Accountability' },
-                { id: 'debriefing', title: 'Debriefing', icon: '📝', desc: 'Operational Review' }
+            const menus = [
+                { id: 'incident', title: 'Incident Report', icon: '📄' },
+                { id: 'handover', title: 'Shift Handover', icon: '🔄' },
+                { id: 'debriefing', title: 'Debriefing', icon: '📝' }
             ];
             container.innerHTML = `<div class="grid gap-4 pt-2">
-                ${modules.map(m => `
+                ${menus.map(m => `
                     <button onclick="setView('input', '${m.id}')" class="card p-6 flex items-center gap-5 text-left border-2 border-transparent hover:border-blue-500 active:scale-95 shadow-sm">
                         <span class="text-4xl">${m.icon}</span>
                         <div>
                             <h3 class="font-extrabold text-lg leading-tight text-slate-900 dark:text-white">${m.title}</h3>
-                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">${m.desc}</p>
+                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Entry Module</p>
                         </div>
                     </button>
                 `).join('')}
-                <button onclick="setView('logs')" class="btn btn-secondary w-full">📂 View Session Logbook</button>
+                <button onclick="setView('logs')" class="btn btn-secondary w-full">📂 View Session Logs</button>
             </div>`;
         }
 
@@ -206,40 +181,25 @@
             const fd = state.formData;
             const commonHeader = `
                 <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label>Watch</label>
-                        <select id="f_watch">
-                            <option value="">Select</option>
-                            <option value="A" ${fd.watch==='A'?'selected':''}>Watch A</option>
-                            <option value="B" ${fd.watch==='B'?'selected':''}>Watch B</option>
-                            <option value="C" ${fd.watch==='C'?'selected':''}>Watch C</option>
-                            <option value="D" ${fd.watch==='D'?'selected':''}>Watch D</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>District Officer</label>
-                        <input type="text" id="f_districtOfficer" placeholder="OIC Name" value="${fd.districtOfficer || ''}">
-                    </div>
+                    <div><label>Watch</label><select id="f_watch"><option value="">Select</option><option value="A" ${fd.watch==='A'?'selected':''}>Watch A</option><option value="B" ${fd.watch==='B'?'selected':''}>Watch B</option><option value="C" ${fd.watch==='C'?'selected':''}>Watch C</option><option value="D" ${fd.watch==='D'?'selected':''}>Watch D</option></select></div>
+                    <div><label>District Officer</label><input type="text" id="f_districtOfficer" placeholder="OIC" value="${fd.districtOfficer || ''}"></div>
                 </div>`;
 
             if (state.mode === 'incident') {
                 container.innerHTML = `
                 <div class="space-y-6">
                     ${commonHeader}
-                    <div class="space-y-2">
-                        <label>Incident Classification</label>
-                        <select id="f_incidentType" onchange="saveInputs(); state.incidentType=this.value; render();">
-                            <option value="house_fire" ${state.incidentType==='house_fire'?'selected':''}>House Fire</option>
-                            <option value="mv_fire" ${state.incidentType==='mv_fire'?'selected':''}>Motor Vehicle Fire</option>
-                            <option value="bush_rubbish_electrical" ${state.incidentType==='bush_rubbish_electrical'?'selected':''}>Bush / Rubbish / Electrical</option>
-                            <option value="mva" ${state.incidentType==='mva'?'selected':''}>MVA</option>
-                            <option value="false_alarm" ${state.incidentType==='false_alarm'?'selected':''}>False Alarm</option>
-                            <option value="special_service" ${state.incidentType==='special_service'?'selected':''}>Special Service</option>
-                        </select>
-                    </div>
+                    <div><label>Classification</label><select id="f_incidentType" onchange="saveInputs(); state.incidentType=this.value; render();">
+                        <option value="house_fire" ${state.incidentType==='house_fire'?'selected':''}>House Fire</option>
+                        <option value="mv_fire" ${state.incidentType==='mv_fire'?'selected':''}>Motor Vehicle Fire</option>
+                        <option value="bush_rubbish_electrical" ${state.incidentType==='bush_rubbish_electrical'?'selected':''}>Bush / Rubbish / Electrical</option>
+                        <option value="mva" ${state.incidentType==='mva'?'selected':''}>MVA</option>
+                        <option value="false_alarm" ${state.incidentType==='false_alarm'?'selected':''}>False Alarm</option>
+                        <option value="special_service" ${state.incidentType==='special_service'?'selected':''}>Special Service</option>
+                    </select></div>
 
                     <div class="card p-5 space-y-4 shadow-sm">
-                        <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest">Call & Response</p>
+                        <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest">Response Details</p>
                         <div class="grid grid-cols-2 gap-3">
                             <div><label>Date of Call</label><input type="date" id="f_dateCall" value="${fd.dateCall || ''}"></div>
                             <div><label>Time of Call</label><input type="time" id="f_timeCall" value="${fd.timeCall || ''}"></div>
@@ -247,8 +207,8 @@
                         <div><label>Responding Station</label><input type="text" id="f_respondingStation" value="${fd.respondingStation || ''}"></div>
                         <div><label>How Called</label><select id="f_howCalled"><option value="">Select</option><option value="Telephone" ${fd.howCalled==='Telephone'?'selected':''}>Telephone</option><option value="Verbal" ${fd.howCalled==='Verbal'?'selected':''}>Verbal</option></select></div>
                         <div class="grid grid-cols-2 gap-3">
-                            <div><label>Leaving</label><input type="time" id="f_timeLeaving" value="${fd.timeLeaving || ''}"></div>
-                            <div><label>Return</label><input type="time" id="f_timeReturn" value="${fd.timeReturn || ''}"></div>
+                            <div><label>Time Leaving</label><input type="time" id="f_timeLeaving" value="${fd.timeLeaving || ''}"></div>
+                            <div><label>Time Return</label><input type="time" id="f_timeReturn" value="${fd.timeReturn || ''}"></div>
                         </div>
                     </div>
 
@@ -275,34 +235,24 @@
 
                     <div class="space-y-4">
                         <div><label>Unit# / Apparatus</label><input type="text" id="f_unit" placeholder="unit#" value="${fd.unit || ''}"></div>
-                        <div><label>Operational Narrative</label><textarea id="f_notes" rows="6" placeholder="Describe actions taken and findings here...">${fd.notes || ''}</textarea></div>
+                        <div><label>Operational Narrative</label><textarea id="f_notes" rows="6" placeholder="Describe actions taken here...">${fd.notes || ''}</textarea></div>
                     </div>
                 </div>`;
             } else if (state.mode === 'handover') {
-                container.innerHTML = `
-                    <div class="space-y-6">
-                        ${commonHeader}
-                        <div class="card p-5 space-y-3 shadow-sm">
-                            <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest mb-2">Accountability</p>
-                            ${CHECKS.map(c => {
-                                const saved = fd[`check_${c.replace(/ /g,'_')}`] || 'not_stated';
-                                return `<div class="flex justify-between items-center text-sm border-b pb-2 dark:border-slate-700"><span>${c}</span><select class="sh-check w-24 font-bold text-blue-600 bg-transparent" id="f_check_${c.replace(/ /g,'_')}" data-label="${c}"><option value="not_stated" ${saved==='not_stated'?'selected':''}>?</option><option value="yes" ${saved==='yes'?'selected':''}>YES</option><option value="no" ${saved==='no'?'selected':''}>NO</option></select></div>`;
-                            }).join('')}
-                        </div>
-                        <div><label>Shift Summary</label><textarea id="f_summary" rows="6" placeholder="Reliefs and incidents...">${fd.summary || ''}</textarea></div>
-                    </div>`;
+                container.innerHTML = `<div class="space-y-6">${commonHeader}<div class="card p-5 space-y-3">
+                    ${CHECKS.map(c => {
+                        const saved = fd[`check_${c.replace(/ /g,'_')}`] || 'not_stated';
+                        return `<div class="flex justify-between items-center text-sm border-b pb-2 dark:border-slate-700"><span>${c}</span><select class="sh-check w-20 font-bold text-blue-600 bg-transparent" id="f_check_${c.replace(/ /g,'_')}" data-label="${c}"><option value="not_stated" ${saved==='not_stated'?'selected':''}>?</option><option value="yes" ${saved==='yes'?'selected':''}>YES</option><option value="no" ${saved==='no'?'selected':''}>NO</option></select></div>`;
+                    }).join('')}
+                </div><textarea id="f_summary" rows="6" placeholder="Shift summary...">${fd.summary || ''}</textarea></div>`;
             } else {
-                container.innerHTML = `<div class="space-y-4">${commonHeader}<div><label>Debriefing Notes</label><textarea id="f_notes" rows="12" placeholder="Record review points and training items...">${fd.notes || ''}</textarea></div></div>`;
+                container.innerHTML = `<div class="space-y-4">${commonHeader}<div><label>Debriefing Notes</label><textarea id="f_notes" rows="12" placeholder="Record review points...">${fd.notes || ''}</textarea></div></div>`;
             }
         }
 
-        /**
-         * REPORT PROCESSING
-         */
         async function handleGenerate() {
             saveInputs();
-            if (state.mode === 'incident' && !state.formData.loc) return alert("Incident Location is required.");
-            
+            if (state.mode === 'incident' && !state.formData.loc) return alert("Location is required.");
             const body = document.getElementById('appBody');
             body.innerHTML = `<div class="flex flex-col items-center py-20 gap-4"><div class="spinner"></div><p class="text-xs font-black uppercase tracking-widest text-slate-400">Processing Operational Data...</p></div>`;
             
@@ -312,22 +262,22 @@
 
                 if (state.mode === 'incident') {
                     r.admin = { 
-                        "Classification": state.incidentType.replace(/_/g, ' ').toUpperCase(), "Watch": d.watch || "Not Entered", 
-                        "DO": d.districtOfficer || "Not Entered", "Call Time": (d.dateCall || "") + " " + (d.timeCall || ""), 
-                        "Location": d.loc || "Not Entered", "Premises": d.typePremises || "Not Entered", "Unit#": d.unit || "Not Entered" 
+                        "Classification": state.incidentType.replace(/_/g, ' ').toUpperCase(), "Watch": d.watch || "Not Entered", "DO": d.districtOfficer || "Not Entered",
+                        "Station": d.respondingStation || "Not Entered", "Date of Call": d.dateCall || "Not Entered", "Time of Call": d.timeCall || "Not Entered",
+                        "How Called": d.howCalled || "Not Entered", "Leaving/Return": (d.timeLeaving || "??") + " / " + (d.timeReturn || "??"),
+                        "Location": d.loc || "Not Entered", "Type of Premises": d.typePremises || "Not Entered", "Distance": d.distance || "Not Entered",
+                        "Men Present": d.menPresent || "Not Entered", "Est Risk": d.estRisk || "Not Entered", "Est Loss": d.estLoss || "Not Entered",
+                        "Owner": d.owner || "Not Entered", "Occupier": d.occupier || "Not Entered", "Origin": d.supposedOrigin || "Not Entered", "Unit#": d.unit || "Not Entered"
                     };
                 } else if (state.mode === 'handover') {
-                    CHECKS.forEach(c => {
-                        const val = d[`check_${c.replace(/ /g,'_')}`];
-                        r.checks.push({ label: c, status: val === 'yes' ? '✅ DONE' : (val === 'no' ? '❌ NO' : '⚠️ ?') });
-                    });
-                    r.admin = { "Watch": d.watch || "Not Entered", "OIC": d.districtOfficer || "Not Entered" };
+                    CHECKS.forEach(c => { const val = fd[`check_${c.replace(/ /g,'_')}`]; r.checks.push({ label: c, status: val === 'yes' ? '✅ DONE' : (val === 'no' ? '❌ NO' : '⚠️ ?') }); });
+                    r.admin = { "Watch": d.watch || "Not Entered", "District Officer": d.districtOfficer || "Not Entered" };
                 } else {
-                    r.admin = { "Watch": d.watch || "Not Entered", "DO": d.districtOfficer || "Not Entered" };
+                    r.admin = { "Watch": d.watch || "Not Entered", "District Officer": d.districtOfficer || "Not Entered" };
                 }
 
                 state.report = r;
-                state.logs.unshift({ title: `${state.mode.toUpperCase()} - ${r.timestamp}`, report: r });
+                state.logs.unshift({ mode: state.mode, title: `${state.mode.toUpperCase()} - ${r.timestamp}`, report: r });
                 localStorage.setItem('station_logs', JSON.stringify(state.logs.slice(0, 30)));
                 state.view = 'result';
                 render();
@@ -339,15 +289,15 @@
             container.innerHTML = `
                 <div class="space-y-4 pb-8">
                     <div class="card p-6 report-accent shadow-sm">
-                        <label>Operational Narrative</label>
+                        <label>Narrative</label>
                         <p class="text-sm leading-relaxed whitespace-pre-wrap text-slate-900 dark:text-slate-100">${r.narrative}</p>
                     </div>
                     <div class="card p-5 space-y-2 shadow-sm">
-                        <label>Administrative Details</label>
+                        <label>Administrative Data</label>
                         ${Object.entries(r.admin).map(([k,v]) => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${k}</span><span class="font-bold text-right ml-4">${v}</span></div>`).join('')}
                     </div>
-                    ${r.checks.length ? `<div class="card p-5 space-y-2 shadow-sm"><label>Checks Summary</label>${r.checks.map(c => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${c.label}</span><span class="font-bold">${c.status}</span></div>`).join('')}</div>` : ''}
-                    <button onclick="state.view='input';render();" class="btn btn-secondary w-full">Edit This Entry</button>
+                    ${r.checks.length ? `<div class="card p-5 space-y-2 shadow-sm"><label>Checks</label>${r.checks.map(c => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${c.label}</span><span class="font-bold">${c.status}</span></div>`).join('')}</div>` : ''}
+                    <button onclick="state.view='input';render();" class="btn btn-secondary w-full">Edit Record Details</button>
                 </div>`;
         }
 
@@ -355,30 +305,41 @@
             if (!state.logs.length) return container.innerHTML = `<div class="card p-12 text-center text-slate-400 font-bold">Logbook is empty.</div>`;
             container.innerHTML = `<div class="space-y-3">
                 ${state.logs.map((log, i) => `
-                    <div class="card p-4 space-y-2 shadow-sm">
-                        <div class="flex justify-between"><p class="text-[10px] font-black uppercase text-blue-600">${log.title}</p><button onclick="state.logs.splice(${i},1); localStorage.setItem('station_logs', JSON.stringify(state.logs)); render();" class="text-xs text-red-500 font-bold">Delete</button></div>
+                    <div class="card p-4 space-y-3 shadow-sm">
+                        <div class="flex justify-between items-center"><p class="text-[10px] font-black uppercase text-blue-600">${log.title}</p><button onclick="state.logs.splice(${i},1); localStorage.setItem('station_logs', JSON.stringify(state.logs)); render();" class="text-xs text-red-500 font-bold">Delete</button></div>
                         <p class="text-xs text-slate-500 line-clamp-2">${log.report.narrative}</p>
-                        <button onclick="state.report=state.logs[${i}].report; state.view='result'; render();" class="text-[10px] font-bold underline text-blue-600 dark:text-blue-400 uppercase">Open Entry</button>
+                        <div class="flex gap-2">
+                            <button onclick="state.report=state.logs[${i}].report; state.mode=state.logs[${i}].mode; state.view='result'; render();" class="btn btn-secondary py-2 text-[10px] flex-1">Open Record</button>
+                            <button onclick="copySpecificLog(${i})" class="btn btn-primary py-2 text-[10px] flex-1">Copy Text</button>
+                        </div>
                     </div>`).join('')}
                 <button onclick="if(confirm('Wipe logs?')){state.logs=[];localStorage.removeItem('station_logs');render();}" class="btn btn-ghost-red w-full">Wipe Entire Session</button>
             </div>`;
         }
 
-        function renderTextPage(container, type) {
-            const titles = { about: "About StationBrain", disclaimer: "Legal Disclaimer" };
-            const text = { 
-                about: "Developed by L/Cpl. R. Marshall to assist with operational reporting and handovers. Designed for professional drafting under station pressure.",
-                disclaimer: "Unofficial support tool only. Does not replace official JFB SOPs. Reports must be reviewed and approved by the OIC before submission." 
-            };
-            container.innerHTML = `<div class="card p-8 space-y-4 shadow-sm"><h2 class="font-black text-xl text-blue-600 dark:text-blue-400">${titles[type]}</h2><p class="text-sm leading-relaxed">${text[type]}</p><button onclick="setView('home')" class="btn btn-secondary w-full">Back to Menu</button></div>`;
+        async function copySpecificLog(i) {
+            const r = state.logs[i].report;
+            const checkTxt = r.checks.length ? `\n\nCHECKS:\n` + r.checks.map(c => `${c.label}: ${c.status}`).join('\n') : '';
+            const text = `REPORT: ${state.logs[i].mode.toUpperCase()}\n\nADMIN:\n${Object.entries(r.admin).map(([k,v]) => `${k}: ${v}`).join('\n')}\n\nNARRATIVE:\n${r.narrative}${checkTxt}`;
+            await navigator.clipboard.writeText(text);
+            alert("Log entry copied!");
         }
 
+        function renderTextPage(container, type) {
+            const h = type === 'about' ? "About StationBrain" : "Legal Disclaimer";
+            const p = type === 'about' ? "Developed by L/Cpl. R. Marshall to assist with operational reporting and handovers. Logic reflects station practice based on real JFB operations." : "Unofficial support tool only. Does not replace official JFB SOPs or doctrine. Reports must be reviewed and approved by the OIC.";
+            container.innerHTML = `<div class="card p-8 space-y-4 shadow-sm"><h2 class="font-black text-xl text-blue-600 dark:text-blue-400">${h}</h2><p class="text-sm leading-relaxed">${p}</p><button onclick="setView('home')" class="btn btn-secondary w-full">Back to Menu</button></div>`;
+        }
+
+        function goHome() { state.formData = {}; state.mode = null; state.view = 'home'; render(); }
+        function clearCurrentForm() { if (confirm("Clear entries?")) { state.formData = {}; render(); } }
         async function copyReport() {
             const r = state.report;
-            const text = `REPORT: ${state.mode.toUpperCase()}\n\nADMIN:\n${Object.entries(r.admin).map(([k,v]) => `${k}: ${v}`).join('\n')}\n\nNARRATIVE:\n${r.narrative}\n\nGenerated via StationBrain`;
-            await navigator.clipboard.writeText(text); alert("Formatted for Word & Copied.");
+            const checkTxt = r.checks.length ? `\n\nCHECKS:\n` + r.checks.map(c => `${c.label}: ${c.status}`).join('\n') : '';
+            const text = `REPORT: ${state.mode.toUpperCase()}\n\nADMIN:\n${Object.entries(r.admin).map(([k,v]) => `${k}: ${v}`).join('\n')}\n\nNARRATIVE:\n${r.narrative}${checkTxt}\n\nGenerated via StationBrain`;
+            await navigator.clipboard.writeText(text);
+            alert("Report copied successfully.");
         }
-
         render();
     </script>
 </body>
