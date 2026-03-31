@@ -18,8 +18,7 @@
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-page); color: var(--text-main); transition: background-color 0.3s; }
         .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1.25rem; }
         
-        /* Unified Form Styling */
-        label { display: block; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-blue); margin-bottom: 0.4rem; padding-left: 0.2rem; }
+        label { display: block; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-blue); margin-bottom: 0.4rem; padding-left: 0.1rem; }
         .dark label { color: #94a3b8; }
 
         input, select, textarea {
@@ -62,16 +61,14 @@
             <!-- Content Injected via JS -->
         </main>
 
-        <!-- Navigation Context -->
         <nav id="bottomNav" class="p-4 card border-t rounded-none space-y-4 hidden sticky bottom-0 z-40 bg-inherit shadow-inner">
             <div class="flex gap-2">
-                <button onclick="setView('home')" class="btn btn-secondary flex-1">Menu</button>
+                <button onclick="goHome()" class="btn btn-secondary flex-1">Menu</button>
                 <button id="actionBtn" class="btn btn-primary flex-[2]">Generate</button>
             </div>
             <button onclick="clearCurrentForm()" class="btn btn-ghost-red w-full uppercase">Clear Current Entries</button>
         </nav>
 
-        <!-- Dynamic Footers -->
         <footer class="p-8 border-t dark:border-slate-800 space-y-6 bg-slate-50 dark:bg-slate-900/20">
             <div class="flex justify-center gap-4 text-[10px] font-black uppercase text-blue-600">
                 <button onclick="setView('home')">Home</button>
@@ -100,13 +97,19 @@
         }
 
         function setView(v, mode = null) {
+            saveInputs();
             state.view = v;
             if (mode) state.mode = mode;
             render();
         }
 
         function saveInputs() {
-            document.querySelectorAll('input, textarea, select').forEach(i => { if (i.id) state.formData[i.id.replace('f_', '')] = i.value; });
+            document.querySelectorAll('input, textarea, select').forEach(i => {
+                if (i.id) {
+                    const key = i.id.replace('f_', '');
+                    state.formData[key] = i.value;
+                }
+            });
         }
 
         function render() {
@@ -148,7 +151,7 @@
             ];
             container.innerHTML = `<div class="grid gap-4 pt-2">
                 ${menus.map(m => `
-                    <button onclick="setView('input', '${m.id}')" class="card p-6 flex items-center gap-5 text-left hover:border-blue-500 transition-all active:scale-95 shadow-sm">
+                    <button onclick="setView('input', '${m.id}')" class="card p-6 flex items-center gap-5 text-left border-2 border-transparent hover:border-blue-500 transition-all active:scale-95 shadow-sm">
                         <span class="text-4xl">${m.icon}</span>
                         <div>
                             <h3 class="font-extrabold text-lg leading-tight text-slate-900 dark:text-white">${m.title}</h3>
@@ -161,21 +164,22 @@
         }
 
         function renderInput(container) {
+            const fd = state.formData;
             const commonHeader = `
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label for="f_watch">Watch</label>
                         <select id="f_watch">
                             <option value="">Select</option>
-                            <option value="A" ${state.formData.watch==='A'?'selected':''}>Watch A</option>
-                            <option value="B" ${state.formData.watch==='B'?'selected':''}>Watch B</option>
-                            <option value="C" ${state.formData.watch==='C'?'selected':''}>Watch C</option>
-                            <option value="D" ${state.formData.watch==='D'?'selected':''}>Watch D</option>
+                            <option value="A" ${fd.watch==='A'?'selected':''}>Watch A</option>
+                            <option value="B" ${fd.watch==='B'?'selected':''}>Watch B</option>
+                            <option value="C" ${fd.watch==='C'?'selected':''}>Watch C</option>
+                            <option value="D" ${fd.watch==='D'?'selected':''}>Watch D</option>
                         </select>
                     </div>
                     <div>
                         <label for="f_districtOfficer">District Officer</label>
-                        <input type="text" id="f_districtOfficer" placeholder="OIC Name" value="${state.formData.districtOfficer || ''}">
+                        <input type="text" id="f_districtOfficer" placeholder="OIC Name" value="${fd.districtOfficer || ''}">
                     </div>
                 </div>`;
 
@@ -183,114 +187,96 @@
                 container.innerHTML = `
                 <div class="space-y-6">
                     ${commonHeader}
-                    
                     <div class="space-y-2">
                         <label>Incident Classification</label>
                         <select id="f_incidentType" onchange="saveInputs(); state.incidentType=this.value; render();">
-                            <option value="house_fire" ${state.incidentType === 'house_fire' ? 'selected' : ''}>House Fire</option>
-                            <option value="mv_fire" ${state.incidentType === 'mv_fire' ? 'selected' : ''}>Motor Vehicle Fire</option>
-                            <option value="bush_rubbish_electrical" ${state.incidentType === 'bush_rubbish_electrical' ? 'selected' : ''}>Bush / Rubbish / Electrical</option>
-                            <option value="mva" ${state.incidentType === 'mva' ? 'selected' : ''}>MVA</option>
-                            <option value="false_alarm" ${state.incidentType === 'false_alarm' ? 'selected' : ''}>False Alarm</option>
-                            <option value="special_service" ${state.incidentType === 'special_service' ? 'selected' : ''}>Special Service</option>
+                            <option value="house_fire" ${state.incidentType==='house_fire'?'selected':''}>House Fire</option>
+                            <option value="mv_fire" ${state.incidentType==='mv_fire'?'selected':''}>Motor Vehicle Fire</option>
+                            <option value="bush_rubbish_electrical" ${state.incidentType==='bush_rubbish_electrical'?'selected':''}>Bush / Rubbish / Electrical</option>
+                            <option value="mva" ${state.incidentType==='mva'?'selected':''}>MVA</option>
+                            <option value="false_alarm" ${state.incidentType==='false_alarm'?'selected':''}>False Alarm</option>
+                            <option value="special_service" ${state.incidentType==='special_service'?'selected':''}>Special Service</option>
                         </select>
                     </div>
 
-                    <div class="card p-5 space-y-4">
-                        <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Call & Response</p>
+                    <div class="card p-5 space-y-4 shadow-sm">
+                        <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Call Details</p>
                         <div class="grid grid-cols-2 gap-3">
-                            <div><label>Date of Call</label><input type="date" id="f_dateCall" value="${state.formData.dateCall || ''}"></div>
-                            <div><label>Time of Call</label><input type="time" id="f_timeCall" value="${state.formData.timeCall || ''}"></div>
+                            <div><label>Date of Call</label><input type="date" id="f_dateCall" value="${fd.dateCall || ''}"></div>
+                            <div><label>Time of Call</label><input type="time" id="f_timeCall" value="${fd.timeCall || ''}"></div>
                         </div>
-                        <div><label>Responding Station</label><input type="text" id="f_respondingStation" value="${state.formData.respondingStation || ''}"></div>
-                        <div>
-                            <label>How Called</label>
-                            <select id="f_howCalled">
-                                <option value="">Select</option>
-                                <option value="Telephone" ${state.formData.howCalled==='Telephone'?'selected':''}>Telephone</option>
-                                <option value="Verbal" ${state.formData.howCalled==='Verbal'?'selected':''}>Verbal</option>
-                            </select>
-                        </div>
+                        <div><label>Responding Station</label><input type="text" id="f_respondingStation" value="${fd.respondingStation || ''}"></div>
+                        <div><label>How Called</label><select id="f_howCalled"><option value="">Select</option><option value="Telephone" ${fd.howCalled==='Telephone'?'selected':''}>Telephone</option><option value="Verbal" ${fd.howCalled==='Verbal'?'selected':''}>Verbal</option></select></div>
                         <div class="grid grid-cols-2 gap-3">
-                            <div><label>Time Leaving</label><input type="time" id="f_timeLeaving" value="${state.formData.timeLeaving || ''}"></div>
-                            <div><label>Time Return</label><input type="time" id="f_timeReturn" value="${state.formData.timeReturn || ''}"></div>
+                            <div><label>Time Leaving</label><input type="time" id="f_timeLeaving" value="${fd.timeLeaving || ''}"></div>
+                            <div><label>Time Return</label><input type="time" id="f_timeReturn" value="${fd.timeReturn || ''}"></div>
                         </div>
                     </div>
 
-                    <div class="card p-5 space-y-4">
+                    <div class="card p-5 space-y-4 shadow-sm">
                         <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Location & Personnel</p>
-                        <div><label>Location Address</label><input type="text" id="f_loc" value="${state.formData.loc || ''}"></div>
-                        <div><label>Type of Premises</label><input type="text" id="f_typePremises" value="${state.formData.typePremises || ''}"></div>
+                        <div><label>Address</label><input type="text" id="f_loc" value="${fd.loc || ''}"></div>
+                        <div><label>Type of Premises</label><input type="text" id="f_typePremises" value="${fd.typePremises || ''}"></div>
                         <div class="grid grid-cols-2 gap-3">
-                            <div><label>Distance (km)</label><input type="text" id="f_distance" value="${state.formData.distance || ''}"></div>
-                            <div><label>No. of Men</label><input type="number" id="f_menPresent" value="${state.formData.menPresent || ''}"></div>
+                            <div><label>Distance (km)</label><input type="text" id="f_distance" value="${fd.distance || ''}"></div>
+                            <div><label>No. of Men</label><input type="number" id="f_menPresent" value="${fd.menPresent || ''}"></div>
                         </div>
                     </div>
 
-                    <div class="card p-5 space-y-4">
+                    <div class="card p-5 space-y-4 shadow-sm">
                         <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Ownership & Origin</p>
-                        <div><label>Owner Name</label><input type="text" id="f_owner" value="${state.formData.owner || ''}"></div>
-                        <div><label>Occupier Name</label><input type="text" id="f_occupier" value="${state.formData.occupier || ''}"></div>
-                        <div><label>Supposed Origin</label><input type="text" id="f_supposedOrigin" value="${state.formData.supposedOrigin || ''}"></div>
+                        <div><label>Owner Name</label><input type="text" id="f_owner" value="${fd.owner || ''}"></div>
+                        <div><label>Occupier Name</label><input type="text" id="f_occupier" value="${fd.occupier || ''}"></div>
+                        <div><label>Supposed Origin</label><input type="text" id="f_supposedOrigin" value="${fd.supposedOrigin || ''}"></div>
                     </div>
 
                     <div class="space-y-4">
-                        <div><label>Unit/Apparatus Number</label><input type="text" id="f_unit" placeholder="unit#" value="${state.formData.unit || ''}"></div>
-                        <div><label>Operational Narrative</label><textarea id="f_notes" rows="6" placeholder="Describe actions taken and findings here...">${state.formData.notes || ''}</textarea></div>
+                        <div><label>Unit/Apparatus Number</label><input type="text" id="f_unit" placeholder="unit#" value="${fd.unit || ''}"></div>
+                        <div><label>Operational Narrative</label><textarea id="f_notes" rows="6" placeholder="Write narrative details here...">${fd.notes || ''}</textarea></div>
                     </div>
                 </div>`;
             } else if (state.mode === 'handover') {
                 container.innerHTML = `
                     <div class="space-y-6">
                         ${commonHeader}
-                        <div class="card p-5 space-y-3">
-                            <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest mb-2">Mandatory Checks</p>
-                            ${CHECKS.map(c => `
-                                <div class="flex justify-between items-center text-sm border-b pb-2 dark:border-slate-700">
-                                    <span class="font-medium">${c}</span>
-                                    <select class="sh-check w-20 font-bold text-blue-600 bg-transparent" data-label="${c}">
-                                        <option value="not_stated">?</option>
-                                        <option value="yes">YES</option>
-                                        <option value="no">NO</option>
-                                    </select>
-                                </div>
-                            `).join('')}
+                        <div class="card p-5 space-y-3 shadow-sm">
+                            <label>Mandatory Checks</label>
+                            ${CHECKS.map(c => {
+                                const savedVal = fd[`check_${c.replace(/ /g,'_')}`] || 'not_stated';
+                                return `<div class="flex justify-between items-center text-sm border-b pb-2 dark:border-slate-700"><span>${c}</span><select class="sh-check w-20 font-bold text-blue-600 bg-transparent" id="f_check_${c.replace(/ /g,'_')}" data-label="${c}"><option value="not_stated" ${savedVal==='not_stated'?'selected':''}>?</option><option value="yes" ${savedVal==='yes'?'selected':''}>YES</option><option value="no" ${savedVal==='no'?'selected':''}>NO</option></select></div>`;
+                            }).join('')}
                         </div>
-                        <div><label>Shift Summary</label><textarea id="f_summary" rows="6" placeholder="Enter incidents, issues, and relief status...">${state.formData.summary || ''}</textarea></div>
+                        <div><label>Shift Summary</label><textarea id="f_summary" rows="6" placeholder="Details...">${fd.summary || ''}</textarea></div>
                     </div>`;
             } else {
-                container.innerHTML = `
-                    <div class="space-y-4">
-                        ${commonHeader}
-                        <div><label>Debriefing Notes</label><textarea id="f_notes" rows="12" placeholder="Record review points and training items...">${state.formData.notes || ''}</textarea></div>
-                    </div>`;
+                container.innerHTML = `<div class="space-y-4">${commonHeader}<div><label>Debriefing Notes</label><textarea id="f_notes" rows="12" placeholder="Record review points...">${fd.notes || ''}</textarea></div></div>`;
             }
         }
 
         function handleGenerate() {
             saveInputs();
+            if (state.mode === 'incident' && !state.formData.loc) return alert("Location is required.");
+            
             const body = document.getElementById('appBody');
-            body.innerHTML = `<div class="flex flex-col items-center py-20 gap-4"><div class="spinner"></div><p class="text-xs font-black uppercase tracking-widest text-slate-400">Processing Operational Data...</p></div>`;
+            body.innerHTML = `<div class="flex flex-col items-center py-20 gap-4"><div class="spinner"></div><p class="text-xs font-black uppercase tracking-widest text-slate-400">Finalizing Output...</p></div>`;
             
             setTimeout(() => {
                 const d = state.formData;
                 const r = { narrative: '', admin: {}, checks: [], timestamp: new Date().toLocaleString('en-JM', { dateStyle: 'medium', timeStyle: 'short' }) };
 
                 if (state.mode === 'incident') {
-                    r.narrative = d.notes || "No operational details recorded.";
-                    r.admin = {
-                        "Classification": state.incidentType.replace(/_/g, ' ').toUpperCase(),
-                        "Watch": d.watch || "Not Entered", "District Officer": d.districtOfficer || "Not Entered",
-                        "Date of Call": d.dateCall || "Not Entered", "Time of Call": d.timeCall || "Not Entered",
-                        "Location": d.loc || "Not Entered", "Unit#": d.unit || "Not Entered"
-                    };
+                    r.narrative = d.notes || "No narrative details recorded.";
+                    r.admin = { "Classification": state.incidentType.replace(/_/g, ' ').toUpperCase(), "Watch": d.watch || "Not Entered", "DO": d.districtOfficer || "Not Entered", "Date": d.dateCall || "Not Entered", "Station": d.respondingStation || "Not Entered", "Location": d.loc || "Not Entered", "Unit#": d.unit || "Not Entered" };
                 } else if (state.mode === 'handover') {
-                    document.querySelectorAll('.sh-check').forEach(el => r.checks.push({ label: el.dataset.label, status: el.value === 'yes' ? '✅ DONE' : (el.value === 'no' ? '❌ NO' : '⚠️ ?') }));
-                    r.narrative = d.summary || "No shift summary entered.";
-                    r.admin = { "Watch": d.watch || "Not Entered", "District Officer": d.districtOfficer || "Not Entered" };
+                    CHECKS.forEach(c => {
+                        const val = d[`check_${c.replace(/ /g,'_')}`];
+                        r.checks.push({ label: c, status: val === 'yes' ? '✅ DONE' : (val === 'no' ? '❌ NO' : '⚠️ ?') });
+                    });
+                    r.narrative = d.summary || "No details entered.";
+                    r.admin = { "Watch": d.watch || "Not Entered", "DO": d.districtOfficer || "Not Entered" };
                 } else {
                     r.narrative = d.notes || "No notes recorded.";
-                    r.admin = { "Watch": d.watch || "Not Entered", "District Officer": d.districtOfficer || "Not Entered" };
+                    r.admin = { "Watch": d.watch || "Not Entered", "DO": d.districtOfficer || "Not Entered" };
                 }
 
                 state.report = r;
@@ -306,23 +292,15 @@
             container.innerHTML = `
                 <div class="space-y-4 pb-8">
                     <div class="card p-6 report-accent shadow-sm">
-                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3">Operational Narrative</h3>
+                        <label>Operational Narrative</label>
                         <p class="text-sm leading-relaxed whitespace-pre-wrap text-slate-900 dark:text-slate-100">${r.narrative}</p>
                     </div>
-
-                    <div class="card p-5 space-y-2">
-                        <h3 class="text-[10px] font-black uppercase text-blue-600 tracking-widest mb-1">Administrative Data</h3>
-                        ${Object.entries(r.admin).map(([k,v]) => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${k}</span><span class="font-bold text-right ml-4">${v}</span></div>`).join('')}
+                    <div class="card p-5 space-y-2 shadow-sm">
+                        <label>Administrative Data</label>
+                        ${Object.entries(r.admin).map(([k,v]) => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${k}</span><span class="font-bold">${v}</span></div>`).join('')}
                     </div>
-
-                    ${r.checks.length ? `<div class="card p-5 space-y-2">
-                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Checks</h3>
-                        ${r.checks.map(c => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${c.label}</span><span class="font-bold">${c.status}</span></div>`).join('')}
-                    </div>` : ''}
-
-                    <div class="flex flex-col gap-3">
-                        <button onclick="setView('input')" class="btn btn-secondary w-full">Edit Record</button>
-                    </div>
+                    ${r.checks.length ? `<div class="card p-5 space-y-2 shadow-sm"><label>Checks</label>${r.checks.map(c => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${c.label}</span><span class="font-bold">${c.status}</span></div>`).join('')}</div>` : ''}
+                    <button onclick="state.view='input';render();" class="btn btn-secondary w-full">Edit Details</button>
                 </div>`;
         }
 
@@ -330,19 +308,32 @@
             if (!state.logs.length) return container.innerHTML = `<div class="card p-12 text-center text-slate-400 font-bold">Logbook is empty.</div>`;
             container.innerHTML = `<div class="space-y-3">
                 ${state.logs.map((log, i) => `
-                    <div class="card p-4 space-y-2">
-                        <div class="flex justify-between items-start">
-                            <p class="text-[10px] font-black uppercase text-blue-600">${log.title}</p>
-                            <button onclick="state.logs.splice(${i},1); localStorage.setItem('station_logs', JSON.stringify(state.logs)); render();" class="text-xs text-red-500 font-bold">Delete</button>
-                        </div>
+                    <div class="card p-4 space-y-2 shadow-sm">
+                        <div class="flex justify-between"><p class="text-[10px] font-black uppercase text-blue-600">${log.title}</p><button onclick="state.logs.splice(${i},1); localStorage.setItem('station_logs', JSON.stringify(state.logs)); render();" class="text-xs text-red-500 font-bold">Delete</button></div>
                         <p class="text-xs text-slate-500 line-clamp-2">${log.report.narrative}</p>
-                        <button onclick="state.report=state.logs[${i}].report; state.view='result'; render();" class="text-[10px] font-bold underline text-blue-600 uppercase">View Entry</button>
-                    </div>
-                `).join('')}
-                <button onclick="if(confirm('Wipe logs?')){state.logs=[];localStorage.removeItem('station_logs');render();}" class="btn btn-ghost-red w-full">Wipe Logbook Data</button>
+                        <button onclick="state.report=state.logs[${i}].report; state.view='result'; render();" class="text-[10px] font-bold underline text-blue-600 uppercase">View Record</button>
+                    </div>`).join('')}
+                <button onclick="if(confirm('Wipe logs?')){state.logs=[];localStorage.removeItem('station_logs');render();}" class="btn btn-ghost-red w-full">Wipe Logs</button>
             </div>`;
         }
 
         function renderTextPage(container, type) {
             const content = type === 'about' ? 
-                { h: "About
+                { h: "About StationBrain", p: "StationBrain is a firefighter support tool developed primarily by L/CPL R. Marshall to assist with operational reporting and station handovers. This app was created to make operational writing faster for firefighters working under time pressure." } :
+                { h: "Legal Disclaimer", p: "Unofficial support tool. Does not replace official Jamaica Fire Brigade SOPs. All reports generated must be verified and approved by the appropriate District Officer before official submission." };
+            container.innerHTML = `<div class="card p-8 space-y-4 shadow-sm"><h2 class="font-black text-xl text-blue-600">${content.h}</h2><p class="text-sm leading-relaxed text-slate-600 dark:text-slate-400">${content.p}</p><button onclick="setView('home')" class="btn btn-secondary w-full">Back to Menu</button></div>`;
+        }
+
+        function goHome() { state.view = 'home'; state.formData = {}; render(); }
+        function clearCurrentForm() { if (confirm("Clear entries?")) { state.formData = {}; render(); } }
+        async function copyReport() {
+            const r = state.report;
+            const text = `REPORT: ${state.mode.toUpperCase()}\n\nADMIN:\n${Object.entries(r.admin).map(([k,v]) => `${k}: ${v}`).join('\n')}\n\nNARRATIVE:\n${r.narrative}`;
+            await navigator.clipboard.writeText(text);
+            alert("Copied successfully.");
+        }
+
+        render();
+    </script>
+</body>
+</html>
