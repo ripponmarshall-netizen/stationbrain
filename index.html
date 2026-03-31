@@ -129,7 +129,6 @@
         function selectMode(m) {
             state.mode = m;
             state.view = 'input';
-            // Auto-fill Current Date/Time as defaults
             const now = new Date();
             if(!state.formData.date) state.formData.date = now.toISOString().split('T')[0];
             if(!state.formData.time) state.formData.time = now.toTimeString().slice(0, 5);
@@ -196,18 +195,46 @@
                         <option value="special_service" ${state.incidentType === 'special_service' ? 'selected' : ''}>Special Service</option>
                     </select>
 
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="text-[9px] uppercase text-slate-400 font-bold">Occurrence Date</label>
-                            <input type="date" id="f_date" value="${state.formData.date || ''}">
+                    <div class="card p-4 rounded-lg space-y-3">
+                        <p class="text-[10px] font-bold uppercase text-teal-600">Call & Response Data</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div><label class="text-[9px] uppercase text-slate-400 font-bold">Date of Call</label><input type="date" id="f_dateCall" value="${state.formData.dateCall || ''}"></div>
+                            <div><label class="text-[9px] uppercase text-slate-400 font-bold">Time of Call</label><input type="time" id="f_timeCall" value="${state.formData.timeCall || ''}"></div>
                         </div>
-                        <div>
-                            <label class="text-[9px] uppercase text-slate-400 font-bold">Occurrence Time</label>
-                            <input type="time" id="f_time" value="${state.formData.time || ''}">
+                        <input type="text" id="f_respondingStation" placeholder="Responding station" value="${state.formData.respondingStation || ''}">
+                        <select id="f_howCalled"><option value="">How called?</option><option value="Telephone">Telephone</option><option value="Verbal">Verbal</option></select>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div><label class="text-[9px] uppercase text-slate-400 font-bold">Time of Leaving</label><input type="time" id="f_timeLeaving" value="${state.formData.timeLeaving || ''}"></div>
+                            <div><label class="text-[9px] uppercase text-slate-400 font-bold">Time of Return</label><input type="time" id="f_timeReturn" value="${state.formData.timeReturn || ''}"></div>
                         </div>
                     </div>
+
+                    <div class="card p-4 rounded-lg space-y-3">
+                        <p class="text-[10px] font-bold uppercase text-teal-600">Location & Risk</p>
+                        <input type="text" id="f_loc" placeholder="Location" value="${state.formData.loc || ''}">
+                        <input type="text" id="f_typePremises" placeholder="Type of premises" value="${state.formData.typePremises || ''}">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="f_distance" placeholder="Distance" value="${state.formData.distance || ''}">
+                            <input type="number" id="f_menPresent" placeholder="Number of men present" value="${state.formData.menPresent || ''}">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="f_estRisk" placeholder="Estimated risk" value="${state.formData.estRisk || ''}">
+                            <input type="text" id="f_estLoss" placeholder="Estimated loss" value="${state.formData.estLoss || ''}">
+                        </div>
+                    </div>
+
+                    <div class="card p-4 rounded-lg space-y-3">
+                        <p class="text-[10px] font-bold uppercase text-teal-600">Parties & Origin</p>
+                        <input type="text" id="f_owner" placeholder="Owner" value="${state.formData.owner || ''}">
+                        <input type="text" id="f_occupier" placeholder="Occupier" value="${state.formData.occupier || ''}">
+                        <input type="text" id="f_supposedOrigin" placeholder="Supposed origin of fire" value="${state.formData.supposedOrigin || ''}">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div><label class="text-[9px] uppercase text-slate-400 font-bold">Occurrence Date</label><input type="date" id="f_date" value="${state.formData.date || ''}"></div>
+                        <div><label class="text-[9px] uppercase text-slate-400 font-bold">Occurrence Time</label><input type="time" id="f_time" value="${state.formData.time || ''}"></div>
+                    </div>
                     <input type="text" id="f_unit" placeholder="unit# (e.g. 5-19)" value="${state.formData.unit || ''}">
-                    <input type="text" id="f_loc" placeholder="Location of Occurrence" value="${state.formData.loc || ''}">
                     
                     ${renderIncidentFields()}
 
@@ -309,6 +336,7 @@
                 narrative: '', 
                 questions: [], 
                 checks: capturedChecks || [], 
+                admin: {},
                 incident_timestamp: `${d.date || 'Unknown Date'} at ${d.time || 'Unknown Time'}`,
                 finalized_timestamp: new Date().toLocaleString('en-JM', { dateStyle: 'medium', timeStyle: 'short' }) 
             };
@@ -316,6 +344,25 @@
             const unit = d.unit || '[unit# not provided]';
 
             if (state.mode === 'incident') {
+                // Populate required admin fields
+                res.admin = {
+                    "Date of call": d.dateCall || "Not Entered",
+                    "Time of call": d.timeCall || "Not Entered",
+                    "Responding station": d.respondingStation || "Not Entered",
+                    "Type of premises": d.typePremises || "Not Entered",
+                    "Location": d.loc || "Not Entered",
+                    "How called": d.howCalled || "Not Entered",
+                    "Time of leaving": d.timeLeaving || "Not Entered",
+                    "Time of return": d.timeReturn || "Not Entered",
+                    "Distance": d.distance || "Not Entered",
+                    "Number of men present": d.menPresent || "Not Entered",
+                    "Estimated risk": d.estRisk || "Not Entered",
+                    "Estimated loss": d.estLoss || "Not Entered",
+                    "Owner": d.owner || "Not Entered",
+                    "Occupier": d.occupier || "Not Entered",
+                    "Supposed origin of fire": d.supposedOrigin || "Not Entered"
+                };
+
                 const header = `On ${res.incident_timestamp}, `;
                 if (['house_fire', 'bush_fire', 'mv_fire'].includes(state.incidentType)) {
                     res.narrative = `${header}at arrival at the given location, the brigade observed fire involving ${d.area || 'the reported area'} and ${d.jet || 'standard operations'} was brought into operation to control and extinguish the blaze. ${d.notes || ''} Seeing no threat of re-ignition, the brigade then made up to refill the unit pump and tank and return to base in unit#${unit}.`;
@@ -326,8 +373,6 @@
                 }
             } else if (state.mode === 'handover') {
                 res.narrative = `SHIFT HANDOVER BRIEFING\n\nGenerated: ${res.finalized_timestamp}\nSummary: ${d.summary || 'Routine shift.'}\nPersonnel: ${d.personnel || 'Not stated.'}\nDefects: ${d.defects || 'None reported.'}`;
-                const sbSigned = res.checks.find(e => e.label.includes("Status Book Signed"));
-                if (sbSigned && sbSigned.raw === 'no') res.questions.push("SOP Action: Status Book signature required.");
             } else {
                 res.narrative = `AFTER-ACTION REVIEW\n\nOccurred: ${res.incident_timestamp}\n\n${d.overview || ''}\n\nWell: ${d.well || ''}\nImprove: ${d.improve || ''}`;
             }
@@ -351,6 +396,19 @@
                         <div class="text-sm leading-relaxed whitespace-pre-wrap">${state.report.narrative}</div>
                     </div>
 
+                    ${Object.keys(state.report.admin).length > 0 ? `
+                    <div class="card p-4 rounded-xl border dark:border-slate-700 bg-white dark:bg-slate-800">
+                        <h3 class="text-[10px] font-bold uppercase text-teal-600 tracking-widest mb-3">Brigade Administrative Details</h3>
+                        <div class="grid grid-cols-1 gap-2">
+                            ${Object.entries(state.report.admin).map(([k, v]) => `
+                                <div class="flex justify-between text-xs border-b border-slate-100 dark:border-slate-700 pb-1">
+                                    <span class="text-slate-500">${k}</span>
+                                    <span class="font-bold">${v}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>` : ''}
+
                     ${state.report.checks.length ? `
                     <div class="card p-4 rounded-xl border dark:border-slate-700 bg-white dark:bg-slate-800">
                         <h3 class="text-[10px] font-bold uppercase text-slate-400 tracking-widest mb-3">Checklist Summary</h3>
@@ -364,14 +422,6 @@
                         </div>
                     </div>` : ''}
 
-                    ${state.report.questions.length ? `
-                    <div class="card p-4 rounded-xl missing-box">
-                        <h3 class="text-[10px] font-bold uppercase text-amber-600 tracking-widest mb-2">⚠️ Follow-Up Items</h3>
-                        <ul class="text-xs space-y-1 list-disc ml-4 font-medium text-amber-800 dark:text-amber-200">
-                            ${state.report.questions.map(q=>`<li>${q}</li>`).join('')}
-                        </ul>
-                    </div>` : ''}
-
                     <div class="grid grid-cols-1 gap-2 pt-4">
                         <button onclick="copyFullReport()" class="w-full py-4 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold uppercase text-xs tracking-widest shadow-lg active:scale-95 transition-transform">Copy Full Report</button>
                         <button onclick="goHome()" class="w-full py-3 text-teal-600 font-bold uppercase text-xs text-center">Start New Task</button>
@@ -380,17 +430,15 @@
             `;
         }
 
-        /**
-         * CLIPBOARD LOGIC
-         */
         async function copyFullReport() {
             const r = state.report;
+            const admin = Object.keys(r.admin).length ? `ADMINISTRATIVE DETAILS:\n` + Object.entries(r.admin).map(([k,v]) => `${k}: ${v}`).join('\n') + `\n\n` : '';
             const checks = r.checks.length ? `CHECKLIST SUMMARY:\n` + r.checks.map(c => `${c.label}: ${c.status}`).join('\n') + `\n\n` : '';
-            const text = `STATIONBRAIN REPORT: ${state.mode.toUpperCase()}\nINCIDENT DATE: ${r.incident_timestamp}\nREPORT GENERATED: ${r.finalized_timestamp}\n------------------\n\n${r.narrative}\n\n${checks}END OF DOCUMENT`;
+            const text = `REPORT: ${state.mode.toUpperCase()}\nINCIDENT DATE: ${r.incident_timestamp}\nREPORT GENERATED: ${r.finalized_timestamp}\n------------------\n\n${r.narrative}\n\n${admin}${checks}END OF DOCUMENT`;
             
             try {
                 await navigator.clipboard.writeText(text);
-                alert("Formatted report copied (includes incident & generation timestamps).");
+                alert("Formatted report copied.");
             } catch (err) {
                 alert("Clipboard error.");
             }
