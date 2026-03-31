@@ -17,18 +17,15 @@
             --border-color: #334155; --accent-blue: #3b82f6; --accent-green: #10b981;
         }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-page); color: var(--text-main); transition: background-color 0.3s; height: 100%; }
-        .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1.25rem; transition: all 0.3s; }
-        
+        .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1.25rem; transition: background-color 0.3s, border-color 0.3s; }
         label { display: block; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-label); margin-bottom: 0.4rem; padding-left: 0.1rem; }
-        
         input, select, textarea {
             width: 100%; padding: 0.85rem 1rem; border-radius: 0.75rem;
             border: 2px solid var(--border-color); background-color: var(--bg-card);
-            color: var(--text-main); font-size: 1rem; outline: none; transition: border-color 0.2s ease;
+            color: var(--text-main); font-size: 1rem; outline: none; transition: all 0.2s ease;
             font-weight: 500;
         }
         input:focus, select:focus, textarea:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 3px var(--focus-ring); }
-
         .btn {
             display: inline-flex; align-items: center; justify-content: center;
             padding: 1rem 1.5rem; border-radius: 0.75rem; font-weight: 800;
@@ -38,7 +35,6 @@
         .btn-primary { background-color: var(--accent-blue); color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         .btn-secondary { background-color: var(--bg-card); border-color: var(--text-main); color: var(--text-main); border: 2.2px solid; }
         .btn-ghost-red { color: var(--accent-red); font-size: 0.75rem; font-weight: 800; text-decoration: underline; background: transparent; }
-        
         .report-accent { border-left: 6px solid var(--accent-blue); }
         .spinner { border: 3px solid rgba(0,0,0,0.1); width: 24px; height: 24px; border-radius: 50%; border-left-color: var(--accent-blue); animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -49,11 +45,10 @@
 <body class="light">
 
     <div class="max-w-md mx-auto flex flex-col min-h-screen relative shadow-2xl bg-inherit no-scrollbar">
-        
         <header class="p-4 flex justify-between items-center sticky top-0 z-50 card border-b rounded-none shadow-sm">
             <div>
                 <h1 class="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">StationBrain</h1>
-                <p id="viewLabel" class="text-[10px] uppercase tracking-widest font-black text-blue-600 dark:text-blue-400">JFB Workstation</p>
+                <p id="viewLabel" class="text-[10px] uppercase tracking-widest font-black text-blue-600 dark:text-blue-400">Operational System</p>
             </div>
             <button onclick="toggleThemeManual()" class="p-2 rounded-full bg-slate-200 dark:bg-slate-800 text-lg" id="themeIcon">🌙</button>
         </header>
@@ -62,29 +57,29 @@
 
         <nav id="bottomNav" class="p-4 card border-t rounded-none space-y-4 hidden sticky bottom-0 z-40 bg-inherit shadow-2xl">
             <div class="flex gap-2">
-                <button onclick="setView('home')" class="btn btn-secondary flex-1">Menu</button>
+                <button onclick="goHome()" class="btn btn-secondary flex-1">Menu</button>
                 <button id="actionBtn" class="btn btn-primary flex-[2]">Generate</button>
             </div>
-            <button onclick="clearCurrentForm()" class="btn btn-ghost-red w-full uppercase">Wipe Current Entry</button>
+            <button onclick="clearCurrentForm()" class="btn btn-ghost-red w-full uppercase">Wipe All Current Entries</button>
         </nav>
 
         <footer class="p-8 border-t dark:border-slate-800 space-y-8 bg-slate-50 dark:bg-slate-900/40">
             <div class="flex justify-center gap-4 text-[10px] font-black uppercase text-blue-600 dark:text-blue-400">
                 <button onclick="setView('home')">Home</button>
-                <button onclick="setView('logs')">Session Logs</button>
                 <button onclick="setView('about')">About</button>
                 <button onclick="setView('disclaimer')">Legal</button>
             </div>
-            <p class="text-[9px] font-bold text-slate-400 text-center uppercase tracking-widest">
-                Created by L/Cpl. R. Marshall - Portland Division
-            </p>
+            <div class="space-y-1">
+                <p class="text-[9px] font-bold text-slate-400 text-center uppercase tracking-widest">
+                    Created by L/Cpl. R. Marshall - Portland Division
+                </p>
+            </div>
         </footer>
     </div>
 
     <script>
         let state = {
-            theme: 'light', view: 'home', mode: null, incidentType: 'house_fire', formData: {}, 
-            logs: JSON.parse(localStorage.getItem('station_logs') || '[]')
+            theme: 'light', view: 'home', mode: null, incidentType: 'house_fire', formData: {}, report: null
         };
 
         const CHECKS = ["Occurrence Book Checked", "Telephone Book Checked", "Unit Checked", "Equipment Checked", "Checklist Signed", "Forecast Done", "Status Book Written Up", "Status Book Signed"];
@@ -119,7 +114,7 @@
             const label = document.getElementById('viewLabel');
             body.innerHTML = '';
             nav.classList.add('hidden');
-            label.innerText = state.mode ? state.mode.toUpperCase() : 'JFB Workstation';
+            label.innerText = state.mode ? state.mode.toUpperCase() : 'JFB WORKSTATION';
 
             if (state.view === 'home') {
                 renderHome(body);
@@ -132,9 +127,7 @@
                 nav.classList.remove('hidden');
                 renderResult(body);
                 document.getElementById('actionBtn').onclick = copyReport;
-                document.getElementById('actionBtn').innerText = 'Copy Report';
-            } else if (state.view === 'logs') {
-                renderLogs(body);
+                document.getElementById('actionBtn').innerText = 'Copy Full Report';
             } else if (state.view === 'about' || state.view === 'disclaimer') {
                 renderTextPage(body, state.view);
             }
@@ -143,9 +136,9 @@
 
         function renderHome(container) {
             const menus = [
-                { id: 'incident', title: 'Incident Report', icon: '📄' },
-                { id: 'handover', title: 'Shift Handover', icon: '🔄' },
-                { id: 'debriefing', title: 'Debriefing', icon: '📝' }
+                { id: 'incident', title: 'Incident Report', icon: '📄', desc: 'Narrative & Administration' },
+                { id: 'handover', title: 'Shift Handover', icon: '🔄', desc: 'Watch Accountability' },
+                { id: 'debriefing', title: 'Debriefing', icon: '📝', desc: 'Operational Review' }
             ];
             container.innerHTML = `<div class="grid gap-4 pt-2">
                 ${menus.map(m => `
@@ -153,11 +146,10 @@
                         <span class="text-4xl">${m.icon}</span>
                         <div>
                             <h3 class="font-extrabold text-lg leading-tight text-slate-900 dark:text-white">${m.title}</h3>
-                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Module</p>
+                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">${m.desc}</p>
                         </div>
                     </button>
                 `).join('')}
-                <button onclick="setView('logs')" class="btn btn-secondary w-full">📂 View Session Logs</button>
             </div>`;
         }
 
@@ -176,7 +168,7 @@
                 container.innerHTML = `
                 <div class="space-y-6">
                     ${commonHeader}
-                    <div><label>Incident Classification</label><select id="f_incidentType" onchange="saveInputs(); state.incidentType=this.value; render();">
+                    <div><label>Classification</label><select id="f_incidentType" onchange="saveInputs(); state.incidentType=this.value; render();">
                         <option value="house_fire" ${state.incidentType==='house_fire'?'selected':''}>House Fire</option>
                         <option value="mv_fire" ${state.incidentType==='mv_fire'?'selected':''}>Motor Vehicle Fire</option>
                         <option value="bush_rubbish_electrical" ${state.incidentType==='bush_rubbish_electrical'?'selected':''}>Bush / Rubbish / Electrical</option>
@@ -224,11 +216,12 @@
 
                     <div class="space-y-4">
                         <div><label>Unit# / Apparatus</label><input type="text" id="f_unit" placeholder="unit#" value="${fd.unit || ''}"></div>
-                        <div><label>Operational Narrative</label><textarea id="f_notes" rows="6" placeholder="Describe actions taken...">${fd.notes || ''}</textarea></div>
+                        <div><label>Operational Narrative</label><textarea id="f_notes" rows="6" placeholder="Describe actions taken here...">${fd.notes || ''}</textarea></div>
                     </div>
                 </div>`;
             } else if (state.mode === 'handover') {
-                container.innerHTML = `<div class="space-y-6">${commonHeader}<div class="card p-5 space-y-3">
+                container.innerHTML = `<div class="space-y-6">${commonHeader}<div class="card p-5 space-y-3 shadow-sm">
+                    <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest mb-2">Checklist</p>
                     ${CHECKS.map(c => {
                         const saved = fd[`check_${c.replace(/ /g,'_')}`] || 'not_stated';
                         return `<div class="flex justify-between items-center text-sm border-b pb-2 dark:border-slate-700"><span>${c}</span><select class="sh-check w-20 font-bold text-blue-600 bg-transparent" id="f_check_${c.replace(/ /g,'_')}" data-label="${c}"><option value="not_stated" ${saved==='not_stated'?'selected':''}>?</option><option value="yes" ${saved==='yes'?'selected':''}>YES</option><option value="no" ${saved==='no'?'selected':''}>NO</option></select></div>`;
@@ -251,27 +244,21 @@
 
                 if (state.mode === 'incident') {
                     r.admin = { 
-                        "Classification": state.incidentType.replace(/_/g, ' ').toUpperCase(),
-                        "Watch": d.watch || "Not Entered", "DO": d.districtOfficer || "Not Entered",
-                        "Station": d.respondingStation || "Not Entered", "Date of Call": d.dateCall || "Not Entered",
-                        "Time of Call": d.timeCall || "Not Entered", "How Called": d.howCalled || "Not Entered",
-                        "Time Leaving": d.timeLeaving || "Not Entered", "Time Return": d.timeReturn || "Not Entered",
-                        "Location": d.loc || "Not Entered", "Type of Premises": d.typePremises || "Not Entered",
-                        "Distance": d.distance ? d.distance + ' km' : "Not Entered", "No. of Men": d.menPresent || "Not Entered",
-                        "Estimated Risk": d.estRisk || "Not Entered", "Estimated Loss": d.estLoss || "Not Entered",
-                        "Owner": d.owner || "Not Entered", "Occupier": d.occupier || "Not Entered",
-                        "Origin": d.supposedOrigin || "Not Entered", "Unit#": d.unit || "Not Entered"
+                        "Classification": state.incidentType.replace(/_/g, ' ').toUpperCase(), "Watch": d.watch || "Not Entered", "DO": d.districtOfficer || "Not Entered",
+                        "Station": d.respondingStation || "Not Entered", "Date of Call": d.dateCall || "Not Entered", "Time of Call": d.timeCall || "Not Entered",
+                        "How Called": d.howCalled || "Not Entered", "Time Leaving": d.timeLeaving || "Not Entered", "Time Return": d.timeReturn || "Not Entered",
+                        "Location": d.loc || "Not Entered", "Type of Premises": d.typePremises || "Not Entered", "Distance": d.distance ? d.distance + ' km' : "Not Entered",
+                        "Men Present": d.menPresent || "Not Entered", "Est Risk": d.estRisk || "Not Entered", "Est Loss": d.estLoss || "Not Entered",
+                        "Owner": d.owner || "Not Entered", "Occupier": d.occupier || "Not Entered", "Supposed Origin": d.supposedOrigin || "Not Entered", "Unit#": d.unit || "Not Entered"
                     };
                 } else if (state.mode === 'handover') {
-                    CHECKS.forEach(c => { const val = fd[`check_${c.replace(/ /g,'_')}`]; r.checks.push({ label: c, status: val === 'yes' ? '✅ DONE' : (val === 'no' ? '❌ NO' : '⚠️ ?') }); });
-                    r.admin = { "Watch": d.watch || "Not Entered", "OIC": d.districtOfficer || "Not Entered" };
+                    CHECKS.forEach(c => { const val = d[`check_${c.replace(/ /g,'_')}`]; r.checks.push({ label: c, status: val === 'yes' ? '✅ DONE' : (val === 'no' ? '❌ NO' : '⚠️ ?') }); });
+                    r.admin = { "Watch": d.watch || "Not Entered", "District Officer": d.districtOfficer || "Not Entered" };
                 } else {
-                    r.admin = { "Watch": d.watch || "Not Entered", "OIC": d.districtOfficer || "Not Entered" };
+                    r.admin = { "Watch": d.watch || "Not Entered", "District Officer": d.districtOfficer || "Not Entered" };
                 }
 
                 state.report = r;
-                state.logs.unshift({ mode: state.mode, type: state.incidentType, title: `${state.mode.toUpperCase()} - ${r.timestamp}`, report: r });
-                localStorage.setItem('station_logs', JSON.stringify(state.logs.slice(0, 30)));
                 state.view = 'result';
                 render();
             }, 600);
@@ -286,7 +273,7 @@
                         <p class="text-sm leading-relaxed whitespace-pre-wrap text-slate-900 dark:text-slate-100 font-medium">${r.narrative}</p>
                     </div>
                     <div class="card p-5 space-y-2 shadow-sm">
-                        <label>Administrative Details</label>
+                        <label>Administration</label>
                         ${Object.entries(r.admin).map(([k,v]) => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${k}</span><span class="font-bold text-right ml-4">${v}</span></div>`).join('')}
                     </div>
                     ${r.checks.length ? `<div class="card p-5 space-y-2 shadow-sm"><label>Checks Summary</label>${r.checks.map(c => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${c.label}</span><span class="font-bold">${c.status}</span></div>`).join('')}</div>` : ''}
@@ -294,43 +281,28 @@
                 </div>`;
         }
 
-        function renderLogs(container) {
-            if (!state.logs.length) return container.innerHTML = `<div class="card p-12 text-center text-slate-400 font-bold">Logbook is empty.</div>`;
-            container.innerHTML = `<div class="space-y-3">
-                ${state.logs.map((log, i) => `
-                    <div class="card p-4 space-y-3 shadow-sm">
-                        <div class="flex justify-between items-center"><p class="text-[10px] font-black uppercase text-blue-600">${log.title}</p><button onclick="state.logs.splice(${i},1); localStorage.setItem('station_logs', JSON.stringify(state.logs)); render();" class="text-xs text-red-500 font-bold">Delete</button></div>
-                        <p class="text-xs text-slate-500 line-clamp-2">${log.report.narrative}</p>
-                        <div class="flex gap-2">
-                            <button onclick="state.report=state.logs[${i}].report; state.mode=state.logs[${i}].mode; state.incidentType=state.logs[${i}].type; state.view='result'; render();" class="btn btn-secondary py-2 text-[10px] flex-1">Open Record</button>
-                            <button onclick="copySpecificLog(${i})" class="btn btn-primary py-2 text-[10px] flex-1">Copy text</button>
-                        </div>
-                    </div>`).join('')}
-                <button onclick="if(confirm('Wipe logs?')){state.logs=[];localStorage.removeItem('station_logs');render();}" class="btn btn-ghost-red w-full">Wipe Logbook Data</button>
-            </div>`;
-        }
-
-        async function copySpecificLog(i) {
-            const r = state.logs[i].report;
-            const checks = r.checks.length ? `\n\nCHECKS:\n` + r.checks.map(c => `${c.label}: ${c.status}`).join('\n') : '';
-            const text = `REPORT: ${state.logs[i].mode.toUpperCase()}\n\nADMIN:\n${Object.entries(r.admin).map(([k,v]) => `${k}: ${v}`).join('\n')}\n\nNARRATIVE:\n${r.narrative}${checks}`;
-            await navigator.clipboard.writeText(text);
-            alert("Entry copied!");
-        }
-
         function renderTextPage(container, type) {
             const h = type === 'about' ? "About StationBrain" : "Legal Disclaimer";
-            const p = type === 'about' ? "StationBrain is a firefighter support tool developed primarily by L/Cpl. R. Marshall to assist with operational reporting and handovers. Logic reflects station practice based on real JFB operations." : "Unofficial support tool only. Does not replace official JFB SOPs or doctrine. Reports must be reviewed and approved by the OIC.";
+            const p = type === 'about' ? "Developed by L/Cpl. R. Marshall to assist with operational reporting and station handovers under time pressure. Logic reflects station practice based on real JFB operations." : "Unofficial support tool only. Does not replace official JFB SOPs or doctrine. Reports must be reviewed and approved by the OIC.";
             container.innerHTML = `<div class="card p-8 space-y-4 shadow-sm"><h2 class="font-black text-xl text-blue-600 dark:text-blue-400">${h}</h2><p class="text-sm leading-relaxed">${p}</p><button onclick="setView('home')" class="btn btn-secondary w-full">Back</button></div>`;
         }
 
-        function clearCurrentForm() { if (confirm("Clear entries?")) { state.formData = {}; render(); } }
+        function goHome() {
+            if (state.view !== 'result' && Object.keys(state.formData).length > 0) {
+                if(!confirm("Return to menu? Current entries will be lost.")) return;
+            }
+            state.formData = {}; state.mode = null; state.view = 'home'; render();
+        }
+
+        function clearCurrentForm() { if (confirm("Clear all entries?")) { state.formData = {}; render(); } }
+
         async function copyReport() {
             const r = state.report;
             const checks = r.checks.length ? `\n\nCHECKS:\n` + r.checks.map(c => `${c.label}: ${c.status}`).join('\n') : '';
             const text = `REPORT: ${state.mode.toUpperCase()}\n\nADMIN:\n${Object.entries(r.admin).map(([k,v]) => `${k}: ${v}`).join('\n')}\n\nNARRATIVE:\n${r.narrative}${checks}\n\nGenerated via StationBrain`;
-            await navigator.clipboard.writeText(text); alert("Report copied successfully.");
+            await navigator.clipboard.writeText(text); alert("Report copied.");
         }
+
         render();
     </script>
 </body>
