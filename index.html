@@ -7,86 +7,120 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --brand-teal: #0d9488; --brand-teal-dark: #0f766e; }
-        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; height: 100%; }
-        html { height: 100%; }
-        
-        /* High-Readability Input Colors */
-        .light { background-color: #f1f5f9; color: #0f172a; }
-        .light input, .light textarea, .light select { background-color: #ffffff; color: #0f172a; border-color: #cbd5e1; }
-        
-        .dark { background-color: #0f172a; color: #f8fafc; }
-        .dark input, .dark textarea, .dark select { background-color: #1e293b; color: #f8fafc; border-color: #334155; }
-
-        .card { transition: background-color 0.3s, border-color 0.3s; border-width: 1px; }
-        .light .card { background-color: #ffffff; border-color: #e2e8f0; }
-        .dark .card { background-color: #1e293b; border-color: #334155; }
-        
-        /* Distinct Navigation Buttons */
-        .btn-home { 
-            background-color: #f8fafc; 
-            color: #0f172a; 
-            border: 2px solid #0f172a;
-            box-shadow: 0 4px 0px #0f172a;
+        /* Design Tokens & Color System */
+        :root {
+            /* Neutrals */
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            /* Accents */
+            --accent-blue: #2563eb;
+            --accent-green: #059669;
+            --accent-red: #dc2626;
+            --focus-ring: rgba(37, 99, 235, 0.2);
         }
-        .dark .btn-home {
-            background-color: #1e293b;
-            color: #f8fafc;
-            border: 2px solid #f8fafc;
-            box-shadow: 0 4px 0px #f8fafc;
+
+        .dark {
+            --bg-page: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --accent-blue: #3b82f6;
+            --focus-ring: rgba(59, 130, 246, 0.3);
         }
-        .btn-home:active { transform: translateY(2px); box-shadow: 0 2px 0px #0f172a; }
 
-        .btn-clear { color: #dc2626; font-weight: 700; text-decoration: underline; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-page); 
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+            line-height: 1.5;
+        }
 
-        /* Report Styles */
-        .report-box { border-left: 6px solid var(--brand-teal); }
+        /* Standardized Component Styling */
+        .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1rem; }
         
-        input, select, textarea { 
-            width: 100%; padding: 0.85rem; border-radius: 0.6rem; border: 2px solid; 
-            font-size: 1rem; outline: none; transition: all 0.2s; 
+        input, select, textarea {
+            width: 100%; padding: 0.75rem 1rem; border-radius: 0.75rem;
+            border: 1.5px solid var(--border-color); background-color: var(--bg-card);
+            color: var(--text-main); font-size: 1rem; transition: all 0.2s;
         }
-        input:focus, textarea:focus { border-color: var(--brand-teal) !important; }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none; border-color: var(--accent-blue);
+            box-shadow: 0 0 0 4px var(--focus-ring);
+        }
 
-        .about-section { font-size: 0.8rem; line-height: 1.4; border-top: 1px solid #cbd5e1; padding-top: 1.5rem; margin-top: 2rem; }
-        .dark .about-section { border-top-color: #334155; }
+        /* Unified Button System */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 0.875rem 1.5rem; border-radius: 0.75rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.025em; font-size: 0.75rem;
+            transition: all 0.2s; cursor: pointer; border: 1.5px solid transparent;
+        }
 
-        .no-print { @media print { display: none; } }
-        .spinner { border: 3px solid rgba(0,0,0,0.1); width: 24px; height: 24px; border-radius: 50%; border-left-color: var(--brand-teal); animation: spin 1s linear infinite; }
+        .btn-primary { background-color: var(--accent-blue); color: #ffffff; }
+        .btn-primary:active { transform: scale(0.98); opacity: 0.9; }
+
+        .btn-secondary { background-color: transparent; border-color: var(--border-color); color: var(--text-main); }
+        .btn-secondary:active { background-color: var(--border-color); }
+
+        .btn-ghost-red { color: var(--accent-red); font-size: 0.7rem; border: none; background: transparent; }
+
+        /* Status Colors */
+        .text-success { color: var(--accent-green); }
+        .text-danger { color: var(--accent-red); }
+        .report-accent { border-left: 4px solid var(--accent-blue); }
+
+        .spinner { 
+            border: 3px solid rgba(0,0,0,0.1); width: 24px; height: 24px; border-radius: 50%; 
+            border-left-color: var(--accent-blue); animation: spin 1s linear infinite; 
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body class="light">
 
-    <div class="max-w-md mx-auto flex flex-col min-h-screen shadow-2xl bg-inherit overflow-x-hidden">
+    <div class="max-w-md mx-auto flex flex-col min-h-screen shadow-sm relative">
         
         <!-- Header -->
-        <header class="p-4 flex justify-between items-center sticky top-0 z-50 card border-b shadow-sm">
+        <header class="p-4 flex justify-between items-center sticky top-0 z-50 card border-b rounded-none">
             <div>
                 <h1 class="font-extrabold text-xl tracking-tight">StationBrain</h1>
-                <p id="currentModeLabel" class="text-[10px] uppercase tracking-widest text-teal-600 font-bold">Operational Support</p>
+                <p id="viewLabel" class="text-[10px] uppercase tracking-widest font-bold text-blue-600">Workstation</p>
             </div>
-            <button onclick="manualThemeToggle()" class="p-2 rounded-full bg-slate-200 dark:bg-slate-800 text-lg" id="themeIcon">🌙</button>
+            <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-800" id="themeIcon">🌙</button>
         </header>
 
-        <!-- Main Dynamic View -->
-        <main id="mainView" class="flex-1 p-4 space-y-4">
-            <!-- Content injected via JS -->
+        <!-- Main Viewport -->
+        <main id="appBody" class="flex-1 p-4 space-y-6">
+            <!-- Dynamic components injected here -->
         </main>
 
-        <!-- Navigation -->
-        <nav id="globalNav" class="max-w-md mx-auto p-4 card border-t flex flex-col gap-4 hidden sticky bottom-0 z-40 bg-inherit">
-            <button onclick="goHome()" class="btn-home w-full py-4 rounded-xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2">
-                🏠 BACK TO MAIN MENU
-            </button>
-            <button onclick="clearCurrentForm()" class="btn-clear text-xs uppercase self-center">
-                Clear Current Entries
-            </button>
+        <!-- Navigation Context -->
+        <nav id="bottomNav" class="p-4 card border-t rounded-none space-y-3 hidden sticky bottom-0">
+            <div class="flex gap-2">
+                <button onclick="setView('home')" class="btn btn-secondary flex-1">Back Home</button>
+                <button id="actionBtn" class="btn btn-primary flex-[2]">Generate</button>
+            </div>
+            <div class="text-center">
+                <button onclick="clearCurrentForm()" class="btn btn-ghost-red">Clear All Inputs</button>
+            </div>
         </nav>
 
-        <!-- Footer Footer -->
-        <footer class="p-6 text-center border-t dark:border-slate-800 bg-slate-100/50 dark:bg-slate-900/50">
+        <!-- App Footer Info -->
+        <footer class="p-6 border-t dark:border-slate-800 text-center space-y-4">
+            <div class="flex justify-center gap-4 text-[11px] font-bold uppercase tracking-wider text-blue-600">
+                <button onclick="setView('about')">About</button>
+                <span class="text-gray-300">|</span>
+                <button onclick="setView('disclaimer')">Disclaimer</button>
+            </div>
             <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400">
                 Created by L/Cpl. R. Marshall of the Portland Division
             </p>
@@ -94,10 +128,7 @@
     </div>
 
     <script>
-        /**
-         * STATE MANAGEMENT
-         */
-        let state = {
+        const state = {
             theme: 'light',
             view: 'home',
             mode: null,
@@ -106,353 +137,201 @@
             report: null
         };
 
-        const HANDOVER_CHECKS = [
-            "Occurrence Book Checked", "Telephone Book Checked", "Unit Checked", 
-            "Equipment Checked", "Checklist Signed", "Forecast Done", 
-            "Status Book Written Up", "Status Book Signed"
-        ];
+        const CHECKS = ["Occurrence Book", "Telephone Book", "Unit Checked", "Equipment Checked", "Checklist Signed", "Forecast Done", "Status Book Written Up", "Status Book Signed"];
 
-        const ABOUT_HTML = `
-            <div class="about-section space-y-6 text-slate-500 dark:text-slate-400">
-                <div>
-                    <h2 class="font-bold text-slate-900 dark:text-white mb-1">About StationBrain</h2>
-                    <p><strong>StationBrain</strong> is a firefighter support tool developed primarily by <strong>L/CPL R. Marshall</strong> to help with operational reporting, shift handovers and debriefing. This app was created to make operational writing faster and more reliable for firefighters and shift supervisors working under time pressure.</p>
-                    <p class="mt-2"><strong>AI Development Disclosure</strong>: While AI assistance was used during the development process for rapid prototyping and code generation, the app's design, requirements, workflow logic, terminology, and operational accuracy were specified and refined by L/CPL R. Marshall based on real Jamaica Fire Brigade operational practice.</p>
-                    <p class="mt-2"><strong>Not an Official JFB App</strong>: StationBrain is <strong>not an official Jamaica Fire Brigade application</strong> and is not endorsed, approved, or affiliated with the Jamaica Fire Brigade, Jamaican Government, or any official fire service authority. It is a personal project created as an operational aid for firefighters.</p>
-                </div>
-                <div>
-                    <h2 class="font-bold text-slate-900 dark:text-white mb-1">Disclaimer</h2>
-                    <p><strong>StationBrain is an unofficial operational support tool only.</strong></p>
-                    <ul class="list-disc ml-4 space-y-1 mt-1">
-                        <li>This app does not replace official JFB SOPs, reporting procedures, training doctrine, or command requirements.</li>
-                        <li>Reports generated by this app must be reviewed and approved by the appropriate District Officer before official use.</li>
-                        <li>The app does not claim to follow official JFB SOPs unless specifically confirmed by the user.</li>
-                        <li>Date, time, and operational details entered by the user must be verified for accuracy.</li>
-                    </ul>
-                    <p class="mt-2"><strong>No Liability</strong>: L/CPL R. Marshall and any contributors accept no liability for errors, omissions, or use of this app.</p>
-                </div>
-                <div class="pt-4 border-t dark:border-slate-800 text-[10px] font-bold">
-                    <p>Developed by L/CPL R. Marshall</p>
-                    <p>Jamaica Fire Brigade Station Support Tool</p>
-                    <p class="text-teal-600">Unofficial - For Drafting Assistance Only</p>
-                </div>
-            </div>
-        `;
-
-        /**
-         * THEME
-         */
-        function manualThemeToggle() {
+        function toggleTheme() {
             state.theme = state.theme === 'light' ? 'dark' : 'light';
             document.body.className = state.theme;
             document.getElementById('themeIcon').innerText = state.theme === 'light' ? '🌙' : '☀️';
         }
 
-        /**
-         * NAVIGATION
-         */
-        function goHome() {
-            state.view = 'home';
-            state.mode = null;
-            state.formData = {};
-            state.report = null;
+        function setView(v, mode = null) {
+            state.view = v;
+            if (mode) state.mode = mode;
             render();
         }
 
-        function clearCurrentForm() {
-            if(confirm("Wipe all current inputs for this section?")) {
-                state.formData = {};
-                render();
-            }
-        }
-
-        function selectMode(m) {
-            state.mode = m;
-            state.view = 'input';
-            const now = new Date();
-            if(!state.formData.dateCall) state.formData.dateCall = now.toISOString().split('T')[0];
-            render();
-        }
-
-        /**
-         * RENDERER
-         */
         function render() {
-            const main = document.getElementById('mainView');
-            const nav = document.getElementById('globalNav');
-            const label = document.getElementById('currentModeLabel');
-            
-            main.innerHTML = '';
+            const body = document.getElementById('appBody');
+            const nav = document.getElementById('bottomNav');
+            const label = document.getElementById('viewLabel');
+            body.innerHTML = '';
             nav.classList.add('hidden');
-            label.innerText = state.mode ? (state.mode === 'incident' ? 'Incident Report' : state.mode.charAt(0).toUpperCase() + state.mode.slice(1)) : 'Main Menu';
 
             if (state.view === 'home') {
-                renderHome(main);
+                label.innerText = 'Main Menu';
+                renderHome(body);
             } else if (state.view === 'input') {
                 nav.classList.remove('hidden');
-                renderInputForm(main);
+                label.innerText = state.mode.replace('_', ' ');
+                renderInput(body);
+                document.getElementById('actionBtn').onclick = handleGenerate;
+                document.getElementById('actionBtn').innerText = 'Generate Report';
             } else if (state.view === 'result') {
                 nav.classList.remove('hidden');
-                renderResult(main);
+                label.innerText = 'Result';
+                renderResult(body);
+                document.getElementById('actionBtn').onclick = copyReport;
+                document.getElementById('actionBtn').innerText = 'Copy Report';
+            } else if (state.view === 'about') {
+                label.innerText = 'About';
+                renderAbout(body);
+            } else if (state.view === 'disclaimer') {
+                label.innerText = 'Disclaimer';
+                renderDisclaimer(body);
             }
-            main.innerHTML += ABOUT_HTML;
             window.scrollTo(0,0);
         }
 
         function renderHome(container) {
-            const modules = [
-                { id: 'incident', title: 'Incident Report', icon: '📄', desc: 'Administrative & Narrative' },
-                { id: 'handover', title: 'Shift Handover', icon: '🔄', desc: 'Accountability Brief' },
-                { id: 'debriefing', title: 'Debriefing', icon: '📝', desc: 'Post-Incident Review' }
+            const menus = [
+                { id: 'incident', title: 'Incident Report', icon: '📄', color: 'text-blue-500' },
+                { id: 'handover', title: 'Shift Handover', icon: '🔄', color: 'text-blue-500' },
+                { id: 'debriefing', title: 'Debriefing', icon: '📝', color: 'text-blue-500' }
             ];
-
-            container.innerHTML = `<div class="grid grid-cols-1 gap-4 pt-2">
-                ${modules.map(m => `
-                    <button onclick="selectMode('${m.id}')" class="card p-6 rounded-2xl flex items-center gap-4 text-left border-2 border-transparent hover:border-teal-500 transition-all active:scale-95 shadow-sm">
-                        <span class="text-4xl">${m.icon}</span>
+            container.innerHTML = `<div class="grid gap-3 pt-2">
+                ${menus.map(m => `
+                    <button onclick="setView('input', '${m.id}')" class="card p-6 flex items-center gap-4 text-left hover:border-blue-500 transition-colors">
+                        <span class="text-3xl">${m.icon}</span>
                         <div>
-                            <h3 class="font-extrabold text-lg leading-tight text-slate-900 dark:text-white">${m.title}</h3>
-                            <p class="text-[10px] uppercase text-slate-400 font-bold tracking-widest">${m.desc}</p>
+                            <h3 class="font-extrabold text-lg leading-tight">${m.title}</h3>
+                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Operational Support</p>
                         </div>
                     </button>
                 `).join('')}
             </div>`;
         }
 
-        function renderInputForm(container) {
-            let html = '';
-
+        function renderInput(container) {
             if (state.mode === 'incident') {
-                html = `
-                <div class="space-y-6">
-                    <select id="f_incidentType" onchange="updateIncidentType(this.value)">
-                        <option value="house_fire" ${state.incidentType === 'house_fire' ? 'selected' : ''}>House Fire</option>
-                        <option value="mv_fire" ${state.incidentType === 'mv_fire' ? 'selected' : ''}>Motor Vehicle Fire</option>
-                        <option value="bush_rubbish_electrical" ${state.incidentType === 'bush_rubbish_electrical' ? 'selected' : ''}>Bush / Rubbish / Electrical Fire</option>
-                        <option value="mva" ${state.incidentType === 'mva' ? 'selected' : ''}>Motor Vehicle Accident</option>
-                        <option value="false_alarm" ${state.incidentType === 'false_alarm' ? 'selected' : ''}>False Alarm</option>
-                        <option value="special_service" ${state.incidentType === 'special_service' ? 'selected' : ''}>Special Service</option>
-                    </select>
-
-                    <div class="card p-5 rounded-2xl space-y-4">
-                        <p class="text-[10px] font-black uppercase text-teal-600 tracking-widest">Call & Response Data</p>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div><label class="text-[10px] uppercase text-slate-400 font-bold">Date of Call</label><input type="date" id="f_dateCall" value="${state.formData.dateCall || ''}"></div>
-                            <div><label class="text-[10px] uppercase text-slate-400 font-bold">Time of Call</label><input type="time" id="f_timeCall" value="${state.formData.timeCall || ''}"></div>
-                        </div>
-                        <input type="text" id="f_respondingStation" placeholder="Responding station" value="${state.formData.respondingStation || ''}">
-                        <select id="f_howCalled"><option value="">How called?</option><option value="Telephone">Telephone</option><option value="Verbal">Verbal</option></select>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div><label class="text-[10px] uppercase text-slate-400 font-bold">Time Leaving</label><input type="time" id="f_timeLeaving" value="${state.formData.timeLeaving || ''}"></div>
-                            <div><label class="text-[10px] uppercase text-slate-400 font-bold">Time Return</label><input type="time" id="f_timeReturn" value="${state.formData.timeReturn || ''}"></div>
-                        </div>
-                    </div>
-
-                    <div class="card p-5 rounded-2xl space-y-4">
-                        <p class="text-[10px] font-black uppercase text-teal-600 tracking-widest">Location & Risk</p>
-                        <input type="text" id="f_loc" placeholder="Location" value="${state.formData.loc || ''}">
-                        <input type="text" id="f_typePremises" placeholder="Type of premises" value="${state.formData.typePremises || ''}">
-                        <div class="grid grid-cols-2 gap-3">
-                            <input type="text" id="f_distance" placeholder="Distance (km)" value="${state.formData.distance || ''}">
-                            <input type="number" id="f_menPresent" placeholder="No. of men" value="${state.formData.menPresent || ''}">
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <input type="text" id="f_estRisk" placeholder="Estimated risk" value="${state.formData.estRisk || ''}">
-                            <input type="text" id="f_estLoss" placeholder="Estimated loss" value="${state.formData.estLoss || ''}">
-                        </div>
-                    </div>
-
-                    <div class="card p-5 rounded-2xl space-y-4">
-                        <p class="text-[10px] font-black uppercase text-teal-600 tracking-widest">Parties & Origin</p>
-                        <input type="text" id="f_owner" placeholder="Owner" value="${state.formData.owner || ''}">
-                        <input type="text" id="f_occupier" placeholder="Occupier" value="${state.formData.occupier || ''}">
-                        <input type="text" id="f_supposedOrigin" placeholder="Supposed origin of fire" value="${state.formData.supposedOrigin || ''}">
-                    </div>
-
+                container.innerHTML = `
                     <div class="space-y-4">
+                        <select id="f_incidentType" onchange="state.incidentType=this.value; render();">
+                            <option value="house_fire" ${state.incidentType === 'house_fire' ? 'selected' : ''}>House Fire</option>
+                            <option value="mva" ${state.incidentType === 'mva' ? 'selected' : ''}>Motor Vehicle Accident</option>
+                            <option value="false_alarm" ${state.incidentType === 'false_alarm' ? 'selected' : ''}>False Alarm</option>
+                        </select>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="date" id="f_dateCall" placeholder="Date of call" value="${state.formData.dateCall || ''}">
+                            <input type="time" id="f_timeCall" placeholder="Time of call" value="${state.formData.timeCall || ''}">
+                        </div>
+                        <input type="text" id="f_loc" placeholder="Location" value="${state.formData.loc || ''}">
                         <input type="text" id="f_unit" placeholder="unit# (e.g. 5-19)" value="${state.formData.unit || ''}">
-                        ${renderIncidentFields()}
-                        <textarea id="f_notes" rows="5" placeholder="Operational details / Observations...">${state.formData.notes || ''}</textarea>
+                        <textarea id="f_notes" rows="4" placeholder="Operational details...">${state.formData.notes || ''}</textarea>
                     </div>
-                </div>`;
+                `;
             } else if (state.mode === 'handover') {
-                html = `<div class="space-y-6">
-                    <div class="card p-5 rounded-2xl space-y-3 text-sm">
-                        <p class="text-[10px] font-black uppercase text-teal-600 tracking-widest">Mandatory Checks</p>
-                        ${HANDOVER_CHECKS.map(c => `
-                            <div class="flex justify-between items-center border-b pb-2 dark:border-slate-700">
-                                <span class="font-medium">${c}</span>
-                                <select class="sh-check w-24 text-xs font-bold text-teal-600" data-label="${c}">
-                                    <option value="not_stated">?</option>
-                                    <option value="yes">YES</option>
-                                    <option value="no">NO</option>
-                                </select>
-                            </div>
-                        `).join('')}
+                container.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="card p-4 space-y-3">
+                            <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Mandatory Checks</p>
+                            ${CHECKS.map(c => `
+                                <div class="flex justify-between items-center text-sm border-b pb-2 dark:border-slate-700">
+                                    <span>${c}</span>
+                                    <select class="sh-check w-20 font-bold text-blue-600 bg-transparent" data-label="${c}">
+                                        <option value="not_stated">?</option><option value="yes">YES</option><option value="no">NO</option>
+                                    </select>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <textarea id="f_summary" rows="4" placeholder="Summary of shift..."></textarea>
                     </div>
-                    <textarea id="f_summary" rows="4" placeholder="Shift summary...">${state.formData.summary || ''}</textarea>
-                    <textarea id="f_personnel" rows="2" placeholder="Personnel status (DO+6 structure)...">${state.formData.personnel || ''}</textarea>
-                    <textarea id="f_defects" rows="2" placeholder="Defects / Station concerns...">${state.formData.defects || ''}</textarea>
-                </div>`;
-            } else if (state.mode === 'debriefing') {
-                html = `<div class="space-y-4">
-                    <textarea id="f_overview" rows="4" placeholder="Event Narrative (What happened?)">${state.formData.overview || ''}</textarea>
-                    <textarea id="f_well" rows="3" placeholder="What went well?">${state.formData.well || ''}</textarea>
-                    <textarea id="f_improve" rows="3" placeholder="What could improve?">${state.formData.improve || ''}</textarea>
-                    <textarea id="f_lessons" rows="3" placeholder="Lessons & Training points">${state.formData.lessons || ''}</textarea>
-                </div>`;
+                `;
+            } else {
+                container.innerHTML = `<textarea id="f_notes" rows="10" placeholder="Enter debrief details..."></textarea>`;
             }
+        }
 
-            container.innerHTML = html + `
-                <button onclick="handleGenerate()" class="w-full py-5 mt-8 rounded-2xl bg-teal-600 text-white font-black uppercase tracking-widest shadow-lg active:scale-95 transition-transform">
-                    PROCESS REPORT
-                </button>
+        function renderResult(container) {
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="card p-5 report-accent shadow-sm">
+                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">Narrative</h3>
+                        <p class="text-sm leading-relaxed whitespace-pre-wrap">${state.report.narrative}</p>
+                    </div>
+                    ${state.report.checks ? `
+                        <div class="card p-4 space-y-2">
+                            <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Checklist Summary</h3>
+                            ${state.report.checks.map(c => `
+                                <div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700">
+                                    <span>${c.label}</span>
+                                    <span class="font-bold ${c.val === 'yes' ? 'text-success' : (c.val === 'no' ? 'text-danger' : 'text-slate-400')}">${c.status}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
             `;
         }
 
-        function renderIncidentFields() {
-            const t = state.incidentType;
-            if (['house_fire', 'bush_rubbish_electrical', 'mv_fire'].includes(t)) {
-                return `<input type="text" id="f_jet" placeholder="Hose / Jet details (e.g. one 1.5 inch jet)">`;
-            } else if (t === 'mva') {
-                return `<input type="text" id="f_vcount" placeholder="Vehicles involved">
-                        <input type="text" id="f_trapped" placeholder="Persons trapped/assisted">`;
-            } else if (t === 'false_alarm') {
-                return `<input type="text" id="f_cause" placeholder="Cause of alarm">
-                        <input type="text" id="f_left" placeholder="Person left with">`;
-            } else if (t === 'special_service') {
-                return `<input type="text" id="f_sstype" placeholder="Service type (Lockout, Padlock...)">
-                        <input type="text" id="f_tools" placeholder="Tools used">`;
-            }
-            return '';
+        function renderAbout(container) {
+            container.innerHTML = `
+                <div class="card p-6 space-y-4 text-sm">
+                    <h2 class="font-extrabold text-lg">About StationBrain</h2>
+                    <p>Developed by <strong>L/CPL R. Marshall</strong> to assist with operational reporting and handovers.</p>
+                    <p>Designed for rapid drafting under time pressure, utilizing real Jamaica Fire Brigade station practices.</p>
+                    <button onclick="setView('home')" class="btn btn-secondary w-full">Back to Menu</button>
+                </div>
+            `;
         }
 
-        function updateIncidentType(val) {
-            state.incidentType = val;
-            saveCurrentInputs();
-            render();
+        function renderDisclaimer(container) {
+            container.innerHTML = `
+                <div class="card p-6 space-y-4 text-sm">
+                    <h2 class="font-extrabold text-lg text-danger">Disclaimer</h2>
+                    <p>StationBrain is an <strong>unofficial support tool</strong> and does not replace official JFB reporting procedures.</p>
+                    <p>All reports must be reviewed by the appropriate District Officer. L/CPL R. Marshall accepts no liability for errors.</p>
+                    <button onclick="setView('home')" class="btn btn-secondary w-full">Back to Menu</button>
+                </div>
+            `;
         }
 
-        function saveCurrentInputs() {
-            const inputs = document.querySelectorAll('input, textarea, select');
-            inputs.forEach(i => { if(i.id) state.formData[i.id.replace('f_', '')] = i.value; });
-        }
-
-        /**
-         * PROCESSING
-         */
-        async function handleGenerate() {
-            let capturedChecks = [];
-            if (state.mode === 'handover') {
-                document.querySelectorAll('.sh-check').forEach(el => {
-                    const status = el.value === 'yes' ? '✅ DONE' : (el.value === 'no' ? '❌ NOT DONE' : '⚠️ NOT STATED');
-                    capturedChecks.push({ label: el.dataset.label, status, raw: el.value });
-                });
-            }
-
-            saveCurrentInputs();
-            if (state.mode === 'incident' && !state.formData.loc) return alert("Location is required.");
-
-            const main = document.getElementById('mainView');
-            main.innerHTML = `<div class="flex flex-col items-center justify-center py-20">
-                <div class="spinner mb-4"></div>
-                <p class="font-bold text-[10px] uppercase text-slate-500 tracking-widest">Processing Operational Data...</p>
-            </div>`;
-
+        function handleGenerate() {
+            saveInputs();
+            const body = document.getElementById('appBody');
+            body.innerHTML = `<div class="flex flex-col items-center py-20 gap-4"><div class="spinner"></div><p class="text-xs font-bold uppercase tracking-widest text-slate-400">Processing Data...</p></div>`;
+            
             setTimeout(() => {
-                state.report = buildReport(capturedChecks);
+                const checks = [];
+                document.querySelectorAll('.sh-check').forEach(el => {
+                    checks.push({ 
+                        label: el.dataset.label, 
+                        val: el.value, 
+                        status: el.value === 'yes' ? '✅ DONE' : (el.value === 'no' ? '❌ NO' : '⚠️ ?') 
+                    });
+                });
+                
+                const d = state.formData;
+                let narrative = "";
+                if (state.mode === 'incident') {
+                    narrative = `At arrival at the given location, brigade observed ${state.incidentType.replace('_', ' ')}. ${d.notes || ''} Seeing no threat of re-ignition, brigade refilled unit pump and tank and returned in unit#${d.unit || '[not entered]'}.`;
+                } else if (state.mode === 'handover') {
+                    narrative = `SHIFT HANDOVER: ${d.summary || 'Routine shift operations.'}`;
+                } else {
+                    narrative = `DEBRIEF: ${d.notes || 'No notes provided.'}`;
+                }
+
+                state.report = { narrative, checks: checks.length ? checks : null };
                 state.view = 'result';
                 render();
             }, 800);
         }
 
-        function buildReport(capturedChecks) {
-            const d = state.formData;
-            const res = { narrative: '', checks: capturedChecks || [], admin: {}, timestamp: new Date().toLocaleString('en-JM', { dateStyle: 'medium', timeStyle: 'short' }) };
-            const unit = d.unit || '[unit# not entered]';
+        function saveInputs() {
+            document.querySelectorAll('input, textarea, select').forEach(i => {
+                if (i.id) state.formData[i.id.replace('f_', '')] = i.value;
+            });
+        }
 
-            if (state.mode === 'incident') {
-                res.admin = {
-                    "Date of call": d.dateCall || "Not Entered", "Time of call": d.timeCall || "Not Entered",
-                    "Responding station": d.respondingStation || "Not Entered", "Type of premises": d.typePremises || "Not Entered",
-                    "Location": d.loc || "Not Entered", "How called": d.howCalled || "Not Entered",
-                    "Time of leaving": d.timeLeaving || "Not Entered", "Time of return": d.timeReturn || "Not Entered",
-                    "Distance": (d.distance ? d.distance + ' km' : "Not Entered"), "No. of men present": d.menPresent || "Not Entered",
-                    "Estimated risk": d.estRisk || "Not Entered", "Estimated loss": d.estLoss || "Not Entered",
-                    "Owner": d.owner || "Not Entered", "Occupier": d.occupier || "Not Entered", "Supposed origin": d.supposedOrigin || "Not Entered"
-                };
-
-                if (['house_fire', 'bush_rubbish_electrical', 'mv_fire'].includes(state.incidentType)) {
-                    res.narrative = `At arrival at the given location, the brigade observed ${state.incidentType.replace(/_/g, ' ')} and ${d.jet || 'standard operations'} was brought into operation to control and extinguish the blaze. ${d.notes || ''} Seeing no threat of re-ignition, the brigade then made up to refill the unit pump and tank and return to base in unit#${unit}.`;
-                } else if (state.incidentType === 'mva') {
-                    res.narrative = `At arrival at the given location, the brigade observed a motor vehicle accident involving ${d.vcount || 'vehicles'}. ${d.trapped || 'No persons'} were found trapped or assisted. ${d.notes || ''} Scene was handed over to the relevant authority and brigade returned to base in unit#${unit}.`;
-                } else {
-                    res.narrative = `Incident Report (${state.incidentType.replace(/_/g, ' ')}): Brigade responded to the given location. ${d.notes || 'Operations conducted.'} Brigade returned in unit#${unit}.`;
-                }
-            } else if (state.mode === 'handover') {
-                res.narrative = `Summary: ${d.summary || 'Not Entered'}\n\nPersonnel Status: ${d.personnel || 'Not Entered'}\n\nDefects: ${d.defects || 'Not Entered'}`;
-            } else {
-                res.narrative = `DEBRIEFING REVIEW\n\nOverview: ${d.overview || 'Not Entered'}\n\nWell: ${d.well || 'Not Entered'}\nImprove: ${d.improve || 'Not Entered'}\nLessons: ${d.lessons || 'Not Entered'}`;
+        function clearCurrentForm() {
+            if (confirm("Clear all current inputs?")) {
+                state.formData = {};
+                render();
             }
-            return res;
         }
 
-        /**
-         * RESULT VIEW
-         */
-        function renderResult(container) {
-            container.innerHTML = `
-                <div class="space-y-4 animate-in fade-in duration-300 pb-12">
-                    <div class="text-[9px] font-bold text-teal-600 text-right uppercase tracking-widest px-1">
-                        Finalized: ${state.report.timestamp}
-                    </div>
-
-                    <div class="card p-6 rounded-2xl shadow-sm report-box">
-                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3">Operational Narrative</h3>
-                        <div class="text-sm leading-relaxed whitespace-pre-wrap text-slate-900 dark:text-slate-100">${state.report.narrative}</div>
-                    </div>
-
-                    ${Object.keys(state.report.admin).length > 0 ? `
-                    <div class="card p-5 rounded-2xl border dark:border-slate-700">
-                        <h3 class="text-[10px] font-black uppercase text-teal-600 tracking-widest mb-3">Administrative Data</h3>
-                        <div class="grid grid-cols-1 gap-2">
-                            ${Object.entries(state.report.admin).map(([k, v]) => `
-                                <div class="flex justify-between text-xs border-b border-slate-100 dark:border-slate-700 pb-1">
-                                    <span class="text-slate-500 font-medium">${k}</span>
-                                    <span class="font-bold text-right ml-2">${v}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>` : ''}
-
-                    ${state.report.checks.length ? `
-                    <div class="card p-5 rounded-2xl border dark:border-slate-700">
-                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3">Checklist Summary</h3>
-                        <div class="space-y-2">
-                            ${state.report.checks.map(c => `
-                                <div class="flex justify-between text-xs border-b border-slate-100 dark:border-slate-700 pb-1">
-                                    <span class="text-slate-500">${c.label}</span>
-                                    <span class="font-bold">${c.status}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>` : ''}
-
-                    <button onclick="copyFullReport()" class="w-full py-5 rounded-2xl bg-teal-600 text-white font-black uppercase text-xs tracking-widest shadow-lg active:scale-95 transition-transform">
-                        COPY FULL REPORT FOR WORD
-                    </button>
-                </div>
-            `;
-        }
-
-        async function copyFullReport() {
-            const r = state.report;
-            let text = `STATIONBRAIN REPORT: ${state.mode.toUpperCase()}\n-------------------------------------------\n`;
-            if (Object.keys(r.admin).length) text += `ADMINISTRATIVE DATA\n` + Object.entries(r.admin).map(([k,v]) => `${k}: ${v}`).join('\n') + `\n\n`;
-            text += `OPERATIONAL NARRATIVE\n${r.narrative}\n\n`;
-            if (r.checks.length) text += `CHECKLIST SUMMARY\n` + r.checks.map(c => `${c.label}: ${c.status}`).join('\n') + `\n\n`;
-            text += `-------------------------------------------\nGenerated via StationBrain\nCreated by L/Cpl R. Marshall`;
-            
+        async function copyReport() {
+            const text = `${state.report.narrative}\n\nGenerated via StationBrain\nCreated by L/Cpl R. Marshall`;
             await navigator.clipboard.writeText(text);
             alert("Report copied successfully.");
         }
