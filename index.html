@@ -8,31 +8,33 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-page: #f1f5f9; --bg-card: #ffffff; --text-main: #0f172a; --text-muted: #64748b;
+            --bg-page: #f1f5f9; --bg-card: #ffffff; --text-main: #0f172a;
             --border-color: #cbd5e1; --accent-blue: #2563eb; --accent-green: #059669; --accent-red: #dc2626;
-            --focus-ring: rgba(37, 99, 235, 0.15);
         }
         .dark {
-            --bg-page: #0f172a; --bg-card: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8;
-            --border-color: #334155; --accent-blue: #3b82f6; --accent-green: #10b981; --focus-ring: rgba(59, 130, 246, 0.2);
+            --bg-page: #0f172a; --bg-card: #1e293b; --text-main: #f8fafc;
+            --border-color: #334155; --accent-blue: #3b82f6;
         }
         body { font-family: 'Inter', sans-serif; background-color: var(--bg-page); color: var(--text-main); transition: background-color 0.3s; }
         .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 1.25rem; }
+        
         input, select, textarea {
             width: 100%; padding: 0.85rem 1rem; border-radius: 0.75rem;
             border: 2px solid var(--border-color); background-color: var(--bg-card);
-            color: var(--text-main); font-size: 1rem; outline: none; transition: all 0.2s;
+            color: var(--text-main); font-size: 1rem; outline: none; transition: border-color 0.2s;
         }
-        input:focus, select:focus, textarea:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 4px var(--focus-ring); }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent-blue); }
+
         .btn {
             display: inline-flex; align-items: center; justify-content: center;
             padding: 1rem 1.5rem; border-radius: 0.75rem; font-weight: 800;
             text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem;
-            transition: all 0.2s; border: 2px solid transparent;
+            transition: all 0.2s; border: 2px solid transparent; cursor: pointer;
         }
-        .btn-primary { background-color: var(--accent-blue); color: #ffffff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .btn-primary { background-color: var(--accent-blue); color: #ffffff; }
         .btn-secondary { background-color: var(--bg-card); border-color: var(--text-main); color: var(--text-main); }
         .btn-ghost-red { color: var(--accent-red); font-size: 0.7rem; font-weight: 700; text-decoration: underline; background: transparent; }
+        
         .report-accent { border-left: 6px solid var(--accent-blue); }
         .spinner { border: 3px solid rgba(0,0,0,0.1); width: 24px; height: 24px; border-radius: 50%; border-left-color: var(--accent-blue); animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -43,41 +45,35 @@
 
     <div class="max-w-md mx-auto flex flex-col min-h-screen relative shadow-2xl bg-inherit">
         
-        <!-- Header -->
         <header class="p-4 flex justify-between items-center sticky top-0 z-50 card border-b rounded-none shadow-sm">
             <div>
                 <h1 class="font-extrabold text-xl tracking-tight">StationBrain</h1>
-                <p id="viewLabel" class="text-[10px] uppercase tracking-widest font-black text-blue-600">Operational Workstation</p>
+                <p id="viewLabel" class="text-[10px] uppercase tracking-widest font-black text-blue-600">Workstation</p>
             </div>
             <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-800" id="themeIcon">🌙</button>
         </header>
 
-        <!-- Main Viewport -->
         <main id="appBody" class="flex-1 p-4 space-y-6">
-            <!-- Dynamic Content -->
+            <!-- Content Injected via JS -->
         </main>
 
-        <!-- Fixed Navigation -->
         <nav id="bottomNav" class="p-4 card border-t rounded-none space-y-4 hidden sticky bottom-0 z-40 bg-inherit">
             <div class="flex gap-2">
                 <button onclick="setView('home')" class="btn btn-secondary flex-1">Menu</button>
                 <button id="actionBtn" class="btn btn-primary flex-[2]">Generate</button>
             </div>
-            <div class="text-center">
-                <button onclick="clearCurrentForm()" class="btn btn-ghost-red uppercase">Clear Entries</button>
-            </div>
+            <button onclick="clearCurrentForm()" class="btn btn-ghost-red w-full uppercase">Clear Entries</button>
         </nav>
 
-        <!-- Footer -->
         <footer class="p-8 border-t dark:border-slate-800 space-y-6 bg-slate-50 dark:bg-slate-900/20">
-            <div class="flex justify-center gap-6 text-[11px] font-black uppercase tracking-widest text-blue-600">
+            <div class="flex justify-center gap-4 text-[10px] font-black uppercase text-blue-600">
                 <button onclick="setView('home')">Home</button>
-                <button onclick="setView('logs')">Logs</button>
+                <button onclick="setView('logs')">Session Logs</button>
                 <button onclick="setView('about')">About</button>
                 <button onclick="setView('disclaimer')">Legal</button>
             </div>
-            <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 text-center">
-                Created by L/Cpl. R. Marshall of the Portland Division
+            <p class="text-[9px] font-bold text-slate-400 text-center uppercase tracking-widest">
+                Created by L/Cpl. R. Marshall - Portland Division
             </p>
         </footer>
     </div>
@@ -124,19 +120,15 @@
                 document.getElementById('actionBtn').innerText = 'Process Report';
             } else if (state.view === 'result') {
                 nav.classList.remove('hidden');
-                label.innerText = 'Report Result';
+                label.innerText = 'Final Output';
                 renderResult(body);
                 document.getElementById('actionBtn').onclick = copyReport;
-                document.getElementById('actionBtn').innerText = 'Copy for Word';
+                document.getElementById('actionBtn').innerText = 'Copy Report';
             } else if (state.view === 'logs') {
-                label.innerText = 'Offline Logs';
+                label.innerText = 'Logbook';
                 renderLogs(body);
-            } else if (state.view === 'about') {
-                label.innerText = 'About';
-                renderAbout(body);
-            } else if (state.view === 'disclaimer') {
-                label.innerText = 'Disclaimer';
-                renderDisclaimer(body);
+            } else if (state.view === 'about' || state.view === 'disclaimer') {
+                renderTextPage(body, state.view);
             }
             window.scrollTo(0,0);
         }
@@ -145,65 +137,56 @@
             const menus = [
                 { id: 'incident', title: 'Incident Report', icon: '📄' },
                 { id: 'handover', title: 'Shift Handover', icon: '🔄' },
-                { id: 'debriefing', title: 'Debriefing', icon: '📝' },
-                { id: 'logs', title: 'Session Logs', icon: '📋' }
+                { id: 'debriefing', title: 'Debriefing', icon: '📝' }
             ];
             container.innerHTML = `<div class="grid gap-4 pt-2">
                 ${menus.map(m => `
-                    <button onclick="${m.id === 'logs' ? "setView('logs')" : `setView('input', '${m.id}')`}" class="card p-6 flex items-center gap-5 text-left hover:border-blue-500 transition-all active:scale-95 shadow-sm">
+                    <button onclick="setView('input', '${m.id}')" class="card p-6 flex items-center gap-5 text-left border-2 border-transparent hover:border-blue-500 transition-all active:scale-95 shadow-sm">
                         <span class="text-4xl">${m.icon}</span>
                         <div>
                             <h3 class="font-extrabold text-lg leading-tight">${m.title}</h3>
-                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Module</p>
+                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Entry Module</p>
                         </div>
                     </button>
                 `).join('')}
+                <button onclick="setView('logs')" class="btn btn-secondary w-full">View Session Logs</button>
             </div>`;
         }
 
         function renderInput(container) {
-            const watchHtml = `
+            const commonHeader = `
                 <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">Watch</label>
-                        <select id="f_watch">
-                            <option value="A" ${state.formData.watch==='A'?'selected':''}>Watch A</option>
-                            <option value="B" ${state.formData.watch==='B'?'selected':''}>Watch B</option>
-                            <option value="C" ${state.formData.watch==='C'?'selected':''}>Watch C</option>
-                            <option value="D" ${state.formData.watch==='D'?'selected':''}>Watch D</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest">District Officer</label>
-                        <input type="text" id="f_districtOfficer" placeholder="Name" value="${state.formData.districtOfficer || ''}">
-                    </div>
-                </div>
-            `;
+                    <select id="f_watch">
+                        <option value="">Select Watch</option>
+                        <option value="A" ${state.formData.watch==='A'?'selected':''}>Watch A</option>
+                        <option value="B" ${state.formData.watch==='B'?'selected':''}>Watch B</option>
+                        <option value="C" ${state.formData.watch==='C'?'selected':''}>Watch C</option>
+                        <option value="D" ${state.formData.watch==='D'?'selected':''}>Watch D</option>
+                    </select>
+                    <input type="text" id="f_districtOfficer" placeholder="District Officer" value="${state.formData.districtOfficer || ''}">
+                </div>`;
 
             if (state.mode === 'incident') {
                 container.innerHTML = `
                 <div class="space-y-6">
-                    ${watchHtml}
-                    <div class="space-y-2">
-                        <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest text-center block">Classification</label>
-                        <select id="f_incidentType" onchange="saveInputs(); state.incidentType=this.value; render();">
-                            <option value="house_fire" ${state.incidentType === 'house_fire' ? 'selected' : ''}>House Fire</option>
-                            <option value="mv_fire" ${state.incidentType === 'mv_fire' ? 'selected' : ''}>Motor Vehicle Fire</option>
-                            <option value="bush_rubbish_electrical" ${state.incidentType === 'bush_rubbish_electrical' ? 'selected' : ''}>Bush / Rubbish / Electrical Fire</option>
-                            <option value="mva" ${state.incidentType === 'mva' ? 'selected' : ''}>Motor Vehicle Accident</option>
-                            <option value="false_alarm" ${state.incidentType === 'false_alarm' ? 'selected' : ''}>False Alarm</option>
-                            <option value="special_service" ${state.incidentType === 'special_service' ? 'selected' : ''}>Special Service</option>
-                        </select>
-                    </div>
+                    ${commonHeader}
+                    <select id="f_incidentType" onchange="saveInputs(); state.incidentType=this.value; render();">
+                        <option value="house_fire" ${state.incidentType === 'house_fire' ? 'selected' : ''}>House Fire</option>
+                        <option value="mv_fire" ${state.incidentType === 'mv_fire' ? 'selected' : ''}>Motor Vehicle Fire</option>
+                        <option value="bush_rubbish_electrical" ${state.incidentType === 'bush_rubbish_electrical' ? 'selected' : ''}>Bush / Rubbish / Electrical</option>
+                        <option value="mva" ${state.incidentType === 'mva' ? 'selected' : ''}>MVA</option>
+                        <option value="false_alarm" ${state.incidentType === 'false_alarm' ? 'selected' : ''}>False Alarm</option>
+                        <option value="special_service" ${state.incidentType === 'special_service' ? 'selected' : ''}>Special Service</option>
+                    </select>
 
                     <div class="card p-5 space-y-4">
-                        <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Call & Response</p>
+                        <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Call Details</p>
                         <div class="grid grid-cols-2 gap-3">
                             <input type="date" id="f_dateCall" value="${state.formData.dateCall || ''}">
                             <input type="time" id="f_timeCall" value="${state.formData.timeCall || ''}">
                         </div>
-                        <input type="text" id="f_respondingStation" placeholder="Responding station" value="${state.formData.respondingStation || ''}">
-                        <select id="f_howCalled"><option value="">How called?</option><option value="Telephone">Telephone</option><option value="Verbal">Verbal</option></select>
+                        <input type="text" id="f_respondingStation" placeholder="Responding Station" value="${state.formData.respondingStation || ''}">
+                        <select id="f_howCalled"><option value="">How Called?</option><option value="Telephone">Telephone</option><option value="Verbal">Verbal</option></select>
                         <div class="grid grid-cols-2 gap-3">
                             <input type="time" id="f_timeLeaving" placeholder="Leaving" value="${state.formData.timeLeaving || ''}">
                             <input type="time" id="f_timeReturn" placeholder="Return" value="${state.formData.timeReturn || ''}">
@@ -211,77 +194,70 @@
                     </div>
 
                     <div class="card p-5 space-y-4">
-                        <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Location & Risk</p>
+                        <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Location & Personnel</p>
                         <input type="text" id="f_loc" placeholder="Location" value="${state.formData.loc || ''}">
-                        <input type="text" id="f_typePremises" placeholder="Type of premises" value="${state.formData.typePremises || ''}">
+                        <input type="text" id="f_typePremises" placeholder="Type of Premises" value="${state.formData.typePremises || ''}">
                         <div class="grid grid-cols-2 gap-3">
-                            <input type="text" id="f_distance" placeholder="Dist (km)" value="${state.formData.distance || ''}">
-                            <input type="number" id="f_menPresent" placeholder="No. of men" value="${state.formData.menPresent || ''}">
+                            <input type="text" id="f_distance" placeholder="Distance (km)" value="${state.formData.distance || ''}">
+                            <input type="number" id="f_menPresent" placeholder="Number of Men" value="${state.formData.menPresent || ''}">
                         </div>
                     </div>
 
                     <div class="card p-5 space-y-4">
-                        <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Parties & Origin</p>
+                        <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Ownership & Origin</p>
                         <input type="text" id="f_owner" placeholder="Owner" value="${state.formData.owner || ''}">
                         <input type="text" id="f_occupier" placeholder="Occupier" value="${state.formData.occupier || ''}">
-                        <input type="text" id="f_supposedOrigin" placeholder="Supposed origin" value="${state.formData.supposedOrigin || ''}">
+                        <input type="text" id="f_supposedOrigin" placeholder="Supposed Origin" value="${state.formData.supposedOrigin || ''}">
                     </div>
 
                     <div class="space-y-4">
                         <input type="text" id="f_unit" placeholder="unit#" value="${state.formData.unit || ''}">
-                        <textarea id="f_notes" rows="5" placeholder="Operational details...">${state.formData.notes || ''}</textarea>
+                        <textarea id="f_notes" rows="6" placeholder="Operational Narrative (Write details here)...">${state.formData.notes || ''}</textarea>
                     </div>
                 </div>`;
             } else if (state.mode === 'handover') {
-                container.innerHTML = `
-                    <div class="space-y-6">
-                        ${watchHtml}
-                        <div class="card p-5 space-y-3">
-                            <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">Checks</p>
-                            ${CHECKS.map(c => `
-                                <div class="flex justify-between items-center text-sm border-b pb-2 dark:border-slate-700">
-                                    <span>${c}</span>
-                                    <select class="sh-check w-20 font-bold text-blue-600 bg-transparent" data-label="${c}">
-                                        <option value="not_stated">?</option><option value="yes">YES</option><option value="no">NO</option>
-                                    </select>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <textarea id="f_summary" rows="4" placeholder="Shift summary..."></textarea>
-                    </div>`;
+                container.innerHTML = `<div class="space-y-6">${commonHeader}<div class="card p-5 space-y-3">
+                    ${CHECKS.map(c => `<div class="flex justify-between items-center text-sm border-b pb-2 dark:border-slate-700"><span>${c}</span><select class="sh-check w-20 font-bold text-blue-600 bg-transparent" data-label="${c}"><option value="not_stated">?</option><option value="yes">YES</option><option value="no">NO</option></select></div>`).join('')}
+                </div><textarea id="f_summary" rows="6" placeholder="Shift details...">${state.formData.summary || ''}</textarea></div>`;
             } else {
-                container.innerHTML = `<div class="space-y-4">${watchHtml}<textarea id="f_notes" rows="10" placeholder="Enter debrief notes..."></textarea></div>`;
+                container.innerHTML = `<div class="space-y-4">${commonHeader}<textarea id="f_notes" rows="12" placeholder="Debrief notes...">${state.formData.notes || ''}</textarea></div>`;
             }
         }
 
         function handleGenerate() {
             saveInputs();
             const body = document.getElementById('appBody');
-            body.innerHTML = `<div class="flex flex-col items-center py-20 gap-4"><div class="spinner"></div><p class="text-xs font-black uppercase tracking-widest text-slate-400">Processing Data...</p></div>`;
+            body.innerHTML = `<div class="flex flex-col items-center py-20 gap-4"><div class="spinner"></div><p class="text-xs font-bold uppercase tracking-widest text-slate-400">Processing...</p></div>`;
             
             setTimeout(() => {
                 const d = state.formData;
                 const r = { narrative: '', admin: {}, checks: [], timestamp: new Date().toLocaleString('en-JM', { dateStyle: 'medium', timeStyle: 'short' }) };
 
                 if (state.mode === 'incident') {
+                    r.narrative = d.notes || "No narrative details entered.";
                     r.admin = {
+                        "Classification": state.incidentType.replace(/_/g, ' ').toUpperCase(),
                         "Watch": d.watch || "Not Entered", "District Officer": d.districtOfficer || "Not Entered",
-                        "Date of call": d.dateCall || "Not Entered", "Time of call": d.timeCall || "Not Entered",
-                        "Responding station": d.respondingStation || "Not Entered", "Type of premises": d.typePremises || "Not Entered",
-                        "Location": d.loc || "Not Entered", "Distance": d.distance || "Not Entered"
+                        "Date/Time of Call": (d.dateCall || "Not Entered") + " at " + (d.timeCall || "Not Entered"),
+                        "Station": d.respondingStation || "Not Entered", "How Called": d.howCalled || "Not Entered",
+                        "Leaving/Return": (d.timeLeaving || "??") + " / " + (d.timeReturn || "??"),
+                        "Location": d.loc || "Not Entered", "Premises": d.typePremises || "Not Entered",
+                        "Distance": d.distance ? d.distance + ' km' : "Not Entered", "Men Present": d.menPresent || "Not Entered",
+                        "Owner/Occupier": (d.owner || "Not Entered") + " / " + (d.occupier || "Not Entered"),
+                        "Supposed Origin": d.supposedOrigin || "Not Entered", "Unit#": d.unit || "Not Entered"
                     };
-                    const unit = d.unit ? `unit#${d.unit}` : '[unit# not entered]';
-                    r.narrative = `Incident Type: ${state.incidentType.replace(/_/g, ' ')}. ${d.notes || 'No operational notes provided.'} Brigade refilled pump and tank and returned in ${unit}.`;
                 } else if (state.mode === 'handover') {
                     document.querySelectorAll('.sh-check').forEach(el => r.checks.push({ label: el.dataset.label, status: el.value === 'yes' ? '✅ DONE' : (el.value === 'no' ? '❌ NO' : '⚠️ ?') }));
-                    r.narrative = `Watch ${d.watch || '?'}. DO: ${d.districtOfficer || 'Not Entered'}. Summary: ${d.summary || 'No notes provided.'}`;
+                    r.narrative = d.summary || "No shift details entered.";
+                    r.admin = { "Watch": d.watch || "Not Entered", "District Officer": d.districtOfficer || "Not Entered" };
                 } else {
-                    r.narrative = `DEBRIEF: Watch ${d.watch || '?'}. DO: ${d.districtOfficer || 'Not Entered'}. ${d.notes || 'No notes entered.'}`;
+                    r.narrative = d.notes || "No debrief notes entered.";
+                    r.admin = { "Watch": d.watch || "Not Entered", "District Officer": d.districtOfficer || "Not Entered" };
                 }
 
                 state.report = r;
-                state.logs.unshift({ title: `${state.mode.toUpperCase()} - ${r.timestamp}`, content: r.narrative });
-                localStorage.setItem('station_logs', JSON.stringify(state.logs.slice(0, 50)));
+                state.logs.unshift({ title: `${state.mode.toUpperCase()} - ${r.timestamp}`, report: r });
+                localStorage.setItem('station_logs', JSON.stringify(state.logs.slice(0, 30)));
                 state.view = 'result';
                 render();
             }, 600);
@@ -290,61 +266,52 @@
         function renderResult(container) {
             const r = state.report;
             container.innerHTML = `
-                <div class="space-y-4">
+                <div class="space-y-4 pb-8">
                     <div class="card p-6 report-accent shadow-sm">
-                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3">Narrative Output</h3>
+                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3">Operational Narrative</h3>
                         <p class="text-sm leading-relaxed whitespace-pre-wrap">${r.narrative}</p>
                     </div>
-                    ${Object.keys(r.admin).length ? `
-                        <div class="card p-5 space-y-2">
-                            <h3 class="text-[10px] font-black uppercase text-blue-600 tracking-widest mb-1">Administrative</h3>
-                            ${Object.entries(r.admin).map(([k,v]) => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${k}</span><span class="font-bold">${v}</span></div>`).join('')}
-                        </div>` : ''}
-                    <div class="flex flex-col gap-3 pt-4">
-                        <button onclick="setView('input')" class="btn btn-secondary w-full">Edit Details</button>
+
+                    <div class="card p-5 space-y-2">
+                        <h3 class="text-[10px] font-black uppercase text-blue-600 tracking-widest mb-1">Administrative Data</h3>
+                        ${Object.entries(r.admin).map(([k,v]) => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${k}</span><span class="font-bold text-right ml-4">${v}</span></div>`).join('')}
                     </div>
+
+                    ${r.checks.length ? `<div class="card p-5 space-y-2">
+                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Checks</h3>
+                        ${r.checks.map(c => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${c.label}</span><span class="font-bold">${c.status}</span></div>`).join('')}
+                    </div>` : ''}
+
+                    <button onclick="setView('input')" class="btn btn-secondary w-full">Edit Details</button>
                 </div>`;
         }
 
         function renderLogs(container) {
-            if (!state.logs.length) {
-                container.innerHTML = `<div class="card p-8 text-center text-slate-400 font-bold">No saved logs in current session.</div>`;
-                return;
-            }
-            container.innerHTML = `
-                <div class="space-y-3">
-                    ${state.logs.map(log => `
-                        <div class="card p-4 space-y-2">
-                            <p class="text-[10px] font-black uppercase text-blue-600 tracking-widest">${log.title}</p>
-                            <p class="text-xs text-slate-500 line-clamp-3">${log.content}</p>
-                        </div>
-                    `).join('')}
-                    <button onclick="if(confirm('Wipe all logs?')){state.logs=[];localStorage.removeItem('station_logs');render();}" class="btn btn-ghost-red w-full">Wipe Logbook</button>
-                </div>
-            `;
-        }
-
-        function renderAbout(container) {
-            container.innerHTML = `<div class="card p-8 space-y-4 text-sm leading-relaxed">
-                <h2 class="font-black text-xl text-blue-600">About StationBrain</h2>
-                <p><strong>Developed by L/CPL R. Marshall</strong> to help with operational reporting, shift handovers and debriefing.</p>
-                <button onclick="setView('home')" class="btn btn-secondary w-full">Back to Menu</button>
+            if (!state.logs.length) return container.innerHTML = `<div class="card p-12 text-center text-slate-400 font-bold">Logbook is empty.</div>`;
+            container.innerHTML = `<div class="space-y-3">
+                ${state.logs.map((log, i) => `
+                    <div class="card p-4 space-y-2">
+                        <p class="text-[10px] font-black uppercase text-blue-600">${log.title}</p>
+                        <p class="text-xs text-slate-500 line-clamp-2">${log.report.narrative}</p>
+                        <button onclick="state.report=state.logs[${i}].report; state.view='result'; render();" class="text-[10px] font-bold underline text-blue-600">View Full Record</button>
+                    </div>
+                `).join('')}
+                <button onclick="if(confirm('Wipe logs?')){state.logs=[];localStorage.removeItem('station_logs');render();}" class="btn btn-ghost-red w-full">Clear Logbook</button>
             </div>`;
         }
 
-        function renderDisclaimer(container) {
-            container.innerHTML = `<div class="card p-8 space-y-4 text-sm leading-relaxed">
-                <h2 class="font-black text-xl text-red-600">Disclaimer</h2>
-                <p>Unofficial operational support tool. Does not replace official JFB SOPs or reporting procedures.</p>
-                <button onclick="setView('home')" class="btn btn-secondary w-full">Back to Menu</button>
-            </div>`;
+        function renderTextPage(container, type) {
+            const content = type === 'about' ? 
+                { h: "About StationBrain", p: "Developed by L/CPL R. Marshall to assist with operational reporting and station handovers." } :
+                { h: "Legal Disclaimer", p: "Unofficial support tool. All generated reports must be verified and approved by the appropriate District Officer." };
+            container.innerHTML = `<div class="card p-8 space-y-4"><h2 class="font-black text-xl text-blue-600">${content.h}</h2><p class="text-sm leading-relaxed">${content.p}</p><button onclick="setView('home')" class="btn btn-secondary w-full">Back</button></div>`;
         }
 
-        function clearCurrentForm() { if (confirm("Wipe inputs?")) { state.formData = {}; render(); } }
+        function clearCurrentForm() { if (confirm("Clear entries?")) { state.formData = {}; render(); } }
 
         async function copyReport() {
             const r = state.report;
-            const text = `${r.narrative}\n\nGenerated via StationBrain\nCreated by L/Cpl R. Marshall`;
+            const text = `REPORT: ${state.mode.toUpperCase()}\n\nADMIN DATA:\n${Object.entries(r.admin).map(([k,v]) => `${k}: ${v}`).join('\n')}\n\nNARRATIVE:\n${r.narrative}`;
             await navigator.clipboard.writeText(text);
             alert("Report copied successfully.");
         }
