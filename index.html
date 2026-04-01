@@ -4,14 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>StationBrain | JFB Operational Workstation</title>
-
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="StationBrain">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -120,7 +118,6 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .hidden { display: none !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-
         .log-body {
             max-height: 0;
             overflow: hidden;
@@ -156,9 +153,7 @@
             </div>
             <button onclick="toggleThemeManual()" class="p-2 rounded-full bg-slate-200 dark:bg-slate-800 text-lg" id="themeIcon">🌙</button>
         </header>
-
         <main id="appBody" class="flex-1 p-4 space-y-6"></main>
-
         <nav id="bottomNav" class="p-4 card border-t rounded-none space-y-4 hidden sticky bottom-0 z-40 bg-inherit shadow-2xl">
             <div class="flex gap-2">
                 <button onclick="goHome()" class="btn btn-secondary flex-1">Menu</button>
@@ -166,7 +161,6 @@
             </div>
             <button onclick="clearCurrentForm()" class="btn btn-ghost-red w-full uppercase">Wipe Current Entries</button>
         </nav>
-
         <footer class="p-8 border-t dark:border-slate-800 space-y-8 bg-slate-50 dark:bg-slate-900/40">
             <div class="flex justify-center gap-4 text-[10px] font-black uppercase text-blue-600 dark:text-blue-400">
                 <button onclick="goHome()">Home</button>
@@ -178,7 +172,6 @@
             </p>
         </footer>
     </div>
-
     <script>
         let state = {
             theme: 'light',
@@ -188,7 +181,6 @@
             formData: {},
             report: null
         };
-
         const CHECKS = [
             "Occurrence Book Checked",
             "Telephone Book Checked",
@@ -199,9 +191,36 @@
             "Status Book Written Up",
             "Status Book Signed"
         ];
-
+        function formatReportText({ mode, timestamp, admin = {}, narrative = '', checks = [] }) {
+            const lines = [];
+            lines.push('STATIONBRAIN REPORT');
+            lines.push('----------------------------------------');
+            lines.push(`REPORT TYPE: ${String(mode || '').toUpperCase()}`);
+            if (timestamp) lines.push(`GENERATED: ${timestamp}`);
+            lines.push('');
+            lines.push('ADMINISTRATION');
+            lines.push('----------------------------------------');
+            const adminEntries = Object.entries(admin || {});
+            if (adminEntries.length) {
+                adminEntries.forEach(([k, v]) => lines.push(`${k}: ${v}`));
+            } else {
+                lines.push('No administration details entered.');
+            }
+            lines.push('');
+            lines.push('NARRATIVE');
+            lines.push('----------------------------------------');
+            lines.push(narrative || 'No notes recorded.');
+            if (checks && checks.length) {
+                lines.push('');
+                lines.push('CHECKS');
+                lines.push('----------------------------------------');
+                checks.forEach(c => lines.push(`${c.label}: ${c.status}`));
+            }
+            lines.push('');
+            lines.push('Generated via StationBrain');
+            return lines.join('\n');
+        }
         const LOG_KEY = 'stationbrain_log';
-
         function loadLog() {
             try {
                 return JSON.parse(localStorage.getItem(LOG_KEY)) || [];
@@ -209,7 +228,6 @@
                 return [];
             }
         }
-
         function saveLog(log) {
             try {
                 localStorage.setItem(LOG_KEY, JSON.stringify(log));
@@ -217,25 +235,21 @@
                 console.warn('Could not save log.');
             }
         }
-
         function appendToLog(report, mode) {
             const log = loadLog();
             log.unshift({ id: Date.now(), mode, ...report });
             saveLog(log);
         }
-
         function deleteLogEntry(id) {
             if (!confirm("Delete this report from the log?")) return;
             saveLog(loadLog().filter(r => r.id !== id));
             renderLog(document.getElementById('appBody'));
         }
-
         function clearLog() {
             if (!confirm("Clear ALL saved reports? This cannot be undone.")) return;
             saveLog([]);
             renderLog(document.getElementById('appBody'));
         }
-
         function toggleLogEntry(id) {
             const body = document.getElementById(`log-body-${id}`);
             const chev = document.getElementById(`log-chev-${id}`);
@@ -243,17 +257,13 @@
             body.classList.toggle('open');
             chev.classList.toggle('open');
         }
-
         async function copyLogReport(id) {
             const entry = loadLog().find(r => r.id === id);
             if (!entry) return;
-
             const checks = entry.checks && entry.checks.length
                 ? `\\n\\nCHECKS:\\n` + entry.checks.map(c => `${c.label}: ${c.status}`).join('\\n')
                 : '';
-
             const text = `REPORT: ${String(entry.mode || '').toUpperCase()}\\nGenerated: ${entry.timestamp || 'Not Entered'}\\n\\nADMIN:\\n${Object.entries(entry.admin || {}).map(([k, v]) => `${k}: ${v}`).join('\\n')}\\n\\nNARRATIVE:\\n${entry.narrative || 'No notes recorded.'}${checks}\\n\\nGenerated via StationBrain`;
-
             try {
                 await navigator.clipboard.writeText(text);
                 alert("Report copied.");
@@ -261,7 +271,6 @@
                 alert("Copy failed. Please copy manually.");
             }
         }
-
         const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
         function updateTheme(isDark) {
             state.theme = isDark ? 'dark' : 'light';
@@ -270,18 +279,15 @@
             const themeIcon = document.getElementById('themeIcon');
             if (themeIcon) themeIcon.innerText = state.theme === 'light' ? '🌙' : '☀️';
         }
-
         updateTheme(darkQuery.matches);
         if (typeof darkQuery.addEventListener === 'function') {
             darkQuery.addEventListener('change', e => updateTheme(e.matches));
         } else if (typeof darkQuery.addListener === 'function') {
             darkQuery.addListener(e => updateTheme(e.matches));
         }
-
         function toggleThemeManual() {
             updateTheme(state.theme !== 'dark');
         }
-
         function saveInputs() {
             document.querySelectorAll('input, textarea, select').forEach(i => {
                 if (i.id) {
@@ -289,14 +295,12 @@
                 }
             });
         }
-
         function setView(v, mode = null) {
             saveInputs();
             state.view = v;
             if (mode) state.mode = mode;
             render();
         }
-
         function goHome() {
             if ((state.view === 'input' || state.view === 'result' || state.view === 'log') &&
                 (Object.keys(state.formData).length > 0 || state.report)) {
@@ -308,7 +312,6 @@
             state.view = 'home';
             render();
         }
-
         function clearCurrentForm() {
             if (!confirm("Clear all entries?")) return;
             state.formData = {};
@@ -318,16 +321,13 @@
             }
             render();
         }
-
         function render() {
             const body = document.getElementById('appBody');
             const nav = document.getElementById('bottomNav');
             const label = document.getElementById('viewLabel');
-
             body.innerHTML = '';
             nav.classList.add('hidden');
             label.innerText = state.mode ? state.mode.toUpperCase() : 'JFB WORKSTATION';
-
             if (state.view === 'home') {
                 renderHome(body);
             } else if (state.view === 'log') {
@@ -345,10 +345,8 @@
             } else if (state.view === 'about' || state.view === 'disclaimer') {
                 renderTextPage(body, state.view);
             }
-
             window.scrollTo(0, 0);
         }
-
         function renderHome(container) {
             const logCount = loadLog().length;
             const menus = [
@@ -356,7 +354,6 @@
                 { id: 'handover', title: 'Shift Handover', icon: '🔄', desc: 'Watch Accountability' },
                 { id: 'debriefing', title: 'Debriefing', icon: '📝', desc: 'Operational Review' }
             ];
-
             container.innerHTML = `<div class="grid gap-4 pt-2">
                 ${menus.map(m => `
                     <button onclick="setView('input', '${m.id}')" class="card p-6 flex items-center gap-5 text-left border-2 border-transparent hover:border-blue-500 active:scale-95 shadow-sm">
@@ -379,7 +376,6 @@
                 </button>
             </div>`;
         }
-
         function renderInput(container) {
             const fd = state.formData;
             const commonHeader = `
@@ -399,7 +395,6 @@
                         <input type="text" id="f_districtOfficer" placeholder="OIC" value="${fd.districtOfficer || ''}">
                     </div>
                 </div>`;
-
             if (state.mode === 'incident') {
                 container.innerHTML = `
                 <div class="space-y-6">
@@ -415,7 +410,6 @@
                             <option value="special_service" ${state.incidentType === 'special_service' ? 'selected' : ''}>Special Service</option>
                         </select>
                     </div>
-
                     <div class="card p-5 space-y-4 shadow-sm">
                         <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest">Response Details</p>
                         <div class="grid grid-cols-2 gap-3">
@@ -451,7 +445,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="card p-5 space-y-4 shadow-sm">
                         <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest">Location & Risk</p>
                         <div>
@@ -483,7 +476,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="card p-5 space-y-4 shadow-sm">
                         <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest">Parties & Origin</p>
                         <div>
@@ -499,7 +491,34 @@
                             <input type="text" id="f_supposedOrigin" value="${fd.supposedOrigin || ''}">
                         </div>
                     </div>
-
+                    ${state.incidentType === 'house_fire' ? `
+                    <div class="card p-5 space-y-4 shadow-sm">
+                        <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest">House Fire Details</p>
+                        <div>
+                            <label>Number of Occupants</label>
+                            <input type="number" min="0" id="f_occupants" value="${fd.occupants || ''}">
+                        </div>
+                        <div>
+                            <label>Insured</label>
+                            <select id="f_insured" onchange="saveInputs()">
+                                <option value="">Select</option>
+                                <option value="yes" ${fd.insured === 'yes' ? 'selected' : ''}>Yes</option>
+                                <option value="no" ${fd.insured === 'no' ? 'selected' : ''}>No</option>
+                            </select>
+                        </div>
+                    </div>` : ''}
+                    ${(state.incidentType === 'mv_fire' || state.incidentType === 'mva') ? `
+                    <div class="card p-5 space-y-4 shadow-sm">
+                        <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest">Vehicle Details</p>
+                        <div>
+                            <label>License Plate Number</label>
+                            <input type="text" id="f_licensePlate" value="${fd.licensePlate || ''}">
+                        </div>
+                        <div>
+                            <label>Number of Vehicles Involved</label>
+                            <input type="number" min="0" id="f_vehicleCount" value="${fd.vehicleCount || ''}">
+                        </div>
+                    </div>` : ''}
                     <div class="space-y-4">
                         <div>
                             <label>Unit# / Apparatus</label>
@@ -531,24 +550,19 @@
                 container.innerHTML = `<div class="space-y-4">${commonHeader}<div><label>Debrief Notes</label><textarea id="f_notes" rows="12" placeholder="Review points...">${fd.notes || ''}</textarea></div></div>`;
             }
         }
-
         async function handleGenerate() {
             saveInputs();
-
             if (!state.mode) {
                 alert("Please choose a report type first.");
                 return;
             }
-
             if (state.mode === 'incident') {
                 if (!state.formData.loc) return alert("Location is required.");
                 if (!state.formData.timeCall) return alert("Time of call is required.");
                 if (!state.formData.respondingStation) return alert("Responding station is required.");
             }
-
             const body = document.getElementById('appBody');
             body.innerHTML = `<div class="flex flex-col items-center py-20 gap-4"><div class="spinner"></div><p class="text-xs font-black uppercase tracking-widest text-slate-400 text-center">Processing operational data...</p></div>`;
-
             setTimeout(() => {
                 const d = state.formData;
                 const r = {
@@ -557,7 +571,6 @@
                     checks: [],
                     timestamp: new Date().toLocaleString('en-JM', { dateStyle: 'medium', timeStyle: 'short' })
                 };
-
                 if (state.mode === 'incident') {
                     r.admin = {
                         "Classification": state.incidentType.replace(/_/g, ' ').toUpperCase(),
@@ -578,6 +591,14 @@
                         "Owner": d.owner || "Not Entered",
                         "Occupier": d.occupier || "Not Entered",
                         "Origin": d.supposedOrigin || "Not Entered",
+                        ...(state.incidentType === 'house_fire' ? {
+                            "Number of Occupants": d.occupants || "Not Entered",
+                            "Insured": d.insured ? (d.insured === 'yes' ? 'Yes' : 'No') : "Not Entered"
+                        } : {}),
+                        ...((state.incidentType === 'mv_fire' || state.incidentType === 'mva') ? {
+                            "License Plate Number": d.licensePlate || "Not Entered",
+                            "No. of Vehicles Involved": d.vehicleCount || "Not Entered"
+                        } : {}),
                         "Unit#": d.unit || "Not Entered"
                     };
                 } else if (state.mode === 'handover') {
@@ -599,14 +620,12 @@
                         "District Officer": d.districtOfficer || "Not Entered"
                     };
                 }
-
                 state.report = r;
                 appendToLog(r, state.mode);
                 state.view = 'result';
                 render();
             }, 600);
         }
-
         function renderResult(container) {
             const r = state.report || { narrative: 'No report available.', admin: {}, checks: [] };
             container.innerHTML = `
@@ -623,13 +642,11 @@
                     <button onclick="state.view='input';render();" class="btn btn-secondary w-full">Edit Details</button>
                 </div>`;
         }
-
         function renderLog(container) {
             document.getElementById('viewLabel').innerText = 'REPORTS LOG';
             const log = loadLog();
             const modeIcon = { incident: '📄', handover: '🔄', debriefing: '📝' };
             const modeLabel = { incident: 'Incident Report', handover: 'Shift Handover', debriefing: 'Debriefing' };
-
             if (log.length === 0) {
                 container.innerHTML = `
                     <div class="flex flex-col items-center py-20 gap-4 text-center">
@@ -640,7 +657,6 @@
                     </div>`;
                 return;
             }
-
             container.innerHTML = `
                 <div class="space-y-3 pb-8">
                     <div class="flex justify-between items-center px-1">
@@ -655,14 +671,12 @@
                             : (entry.admin && entry.admin['Watch'] && entry.admin['Watch'] !== 'Not Entered'
                                 ? 'Watch ' + entry.admin['Watch']
                                 : 'No location');
-
                         const checksHtml = entry.checks && entry.checks.length
                             ? `<div class="mt-3 pt-3 border-t dark:border-slate-700 space-y-1">
                                 <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest mb-2">Checks</p>
                                 ${entry.checks.map(c => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${c.label}</span><span class="font-bold">${c.status}</span></div>`).join('')}
                                </div>`
                             : '';
-
                         return `
                         <div class="card shadow-sm overflow-hidden">
                             <button onclick="toggleLogEntry(${entry.id})" class="w-full p-4 flex items-center gap-4 text-left">
@@ -696,26 +710,20 @@
                     <button onclick="goHome()" class="btn btn-secondary w-full mt-2">Back to Menu</button>
                 </div>`;
         }
-
         function renderTextPage(container, type) {
             const h = type === 'about' ? "About StationBrain" : "Legal Disclaimer";
             const p = type === 'about'
                 ? `StationBrain is a station-level decision-support and record-keeping tool created for use within the Jamaica Fire Brigade. It is designed to help on-duty crews organize station information, track routine activities, and generate clear, consistent reports that support smoother handovers and better situational awareness during a shift.<br><br>The app pulls together information that would normally live in paper logs, notebooks, or on the whiteboard and structures it in one place for easier review. StationBrain is intended to complement, not replace, the Brigade's official procedures, command structure, or mandated documentation. All operational decisions must continue to follow official JFB policies, orders, and the established chain of command.<br><br>StationBrain is currently used on a personal basis at a single station and is developed from a frontline firefighter's perspective with a focus on practicality, speed under pressure, and clarity of records rather than complex automation.`
                 : `1. General information only<br>StationBrain provides tools, logs, and reports for general information and record-keeping purposes at the station level. It does not provide professional, legal, medical, or safety-critical advice and must not be treated as the final authority for any operational, tactical, or staffing decision.<br><br>2. Not an official Jamaica Fire Brigade system<br>StationBrain is a personal tool used within the Jamaica Fire Brigade and is not an official, authorized, or mandated JFB system. It does not replace any official Brigade systems, forms, reports, or documentation and must not be used where the Brigade requires specific official records or platforms. In any conflict between StationBrain and official JFB policies, the official policies and orders always prevail.<br><br>3. No emergency or incident command function<br>StationBrain is not an emergency notification system, incident command platform, or life-safety device. It must never be relied on as the sole source for incident information, crew status, resource availability, or tactical decisions. Users must always follow official radio procedures, command decisions, and safety protocols.<br><br>4. No professional, medical, or legal advice<br>Nothing in StationBrain, including any data, analytics, guidance, or generated reports, is intended to constitute medical advice, legal advice, or any other kind of professional advice. Users must rely on their training, supervisors, and qualified professionals when making decisions that could affect health, safety, employment, or legal rights.`;
-
             container.innerHTML = `<div class="card p-8 space-y-4 shadow-sm"><h2 class="font-black text-xl text-blue-600 dark:text-blue-400">${h}</h2><p class="text-sm leading-relaxed text-slate-600 dark:text-slate-400">${p}</p><button onclick="goHome()" class="btn btn-secondary w-full">Back</button></div>`;
         }
-
         async function copyReport() {
             const r = state.report;
             if (!r) return;
-
             const checks = r.checks && r.checks.length
                 ? `\\n\\nCHECKS:\\n` + r.checks.map(c => `${c.label}: ${c.status}`).join('\\n')
                 : '';
-
             const text = `REPORT: ${String(state.mode || '').toUpperCase()}\\n\\nADMIN:\\n${Object.entries(r.admin || {}).map(([k, v]) => `${k}: ${v}`).join('\\n')}\\n\\nNARRATIVE:\\n${r.narrative || 'No notes recorded.'}${checks}\\n\\nGenerated via StationBrain`;
-
             try {
                 await navigator.clipboard.writeText(text);
                 alert("Report copied.");
@@ -723,10 +731,8 @@
                 alert("Copy failed. Please copy manually.");
             }
         }
-
         render();
     </script>
-
     <!-- PWA: Register Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
@@ -739,4 +745,3 @@
     </script>
 </body>
 </html>
-
