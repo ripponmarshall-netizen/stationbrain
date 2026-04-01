@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>StationBrain | JFB Operational Workstation</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="StationBrain">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -243,7 +251,7 @@
             body.innerHTML = `<div class="flex flex-col items-center py-20 gap-4"><div class="spinner"></div><p class="text-xs font-black uppercase tracking-widest text-slate-400 text-center">Processing operational data...</p></div>`;
             
             setTimeout(() => {
-                const d = state.formData;
+                const d = state.formData; // FIX: was using undeclared `fd` in handover branch below
                 const r = { narrative: d.notes || d.summary || "No notes recorded.", admin: {}, checks: [], timestamp: new Date().toLocaleString('en-JM', { dateStyle: 'medium', timeStyle: 'short' }) };
 
                 if (state.mode === 'incident') {
@@ -269,7 +277,8 @@
                         "Unit#": d.unit || "Not Entered"
                     };
                 } else if (state.mode === 'handover') {
-                    CHECKS.forEach(c => { const val = fd[`check_${c.replace(/ /g,'_')}`]; r.checks.push({ label: c, status: val === 'yes' ? '✅ DONE' : (val === 'no' ? '❌ NO' : '⚠️ ?') }); });
+                    // FIX: was `fd[...]` here — now correctly uses `d[...]`
+                    CHECKS.forEach(c => { const val = d[`check_${c.replace(/ /g,'_')}`]; r.checks.push({ label: c, status: val === 'yes' ? '✅ DONE' : (val === 'no' ? '❌ NO' : '⚠️ ?') }); });
                     r.admin = { "Watch": d.watch || "Not Entered", "District Officer": d.districtOfficer || "Not Entered" };
                 } else {
                     r.admin = { "Watch": d.watch || "Not Entered", "District Officer": d.districtOfficer || "Not Entered" };
@@ -301,7 +310,7 @@
         function renderTextPage(container, type) {
             const h = type === 'about' ? "About StationBrain" : "Legal Disclaimer";
             const p = type === 'about' ? 
-                `StationBrain is a station-level decision-support and record-keeping tool created for use within the Jamaica Fire Brigade. It is designed to help on-duty crews organize station information, track routine activities, and generate clear, consistent reports that support smoother handovers and better situational awareness during a shift.<br><br>The app pulls together information that would normally live in paper logs, notebooks, or on the whiteboard and structures it in one place for easier review. StationBrain is intended to complement, not replace, the Brigade’s official procedures, command structure, or mandated documentation. All operational decisions must continue to follow official JFB policies, orders, and the established chain of command.<br><br>StationBrain is currently used on a personal basis at a single station and is developed from a frontline firefighter’s perspective with a focus on practicality, speed under pressure, and clarity of records rather than complex automation.` :
+                `StationBrain is a station-level decision-support and record-keeping tool created for use within the Jamaica Fire Brigade. It is designed to help on-duty crews organize station information, track routine activities, and generate clear, consistent reports that support smoother handovers and better situational awareness during a shift.<br><br>The app pulls together information that would normally live in paper logs, notebooks, or on the whiteboard and structures it in one place for easier review. StationBrain is intended to complement, not replace, the Brigade's official procedures, command structure, or mandated documentation. All operational decisions must continue to follow official JFB policies, orders, and the established chain of command.<br><br>StationBrain is currently used on a personal basis at a single station and is developed from a frontline firefighter's perspective with a focus on practicality, speed under pressure, and clarity of records rather than complex automation.` :
                 `1. General information only<br>StationBrain provides tools, logs, and reports for general information and record-keeping purposes at the station level. It does not provide professional, legal, medical, or safety-critical advice and must not be treated as the final authority for any operational, tactical, or staffing decision.<br><br>2. Not an official Jamaica Fire Brigade system<br>StationBrain is a personal tool used within the Jamaica Fire Brigade and is not an official, authorized, or mandated JFB system. It does not replace any official Brigade systems, forms, reports, or documentation and must not be used where the Brigade requires specific official records or platforms. In any conflict between StationBrain and official JFB policies, the official policies and orders always prevail.<br><br>3. No emergency or incident command function<br>StationBrain is not an emergency notification system, incident command platform, or life-safety device. It must never be relied on as the sole source for incident information, crew status, resource availability, or tactical decisions. Users must always follow official radio procedures, command decisions, and safety protocols.<br><br>4. No professional, medical, or legal advice<br>Nothing in StationBrain, including any data, analytics, guidance, or generated reports, is intended to constitute medical advice, legal advice, or any other kind of professional advice. Users must rely on their training, supervisors, and qualified professionals when making decisions that could affect health, safety, employment, or legal rights.`;
 
             container.innerHTML = `<div class="card p-8 space-y-4 shadow-sm"><h2 class="font-black text-xl text-blue-600 dark:text-blue-400">${h}</h2><p class="text-sm leading-relaxed text-slate-600 dark:text-slate-400">${p}</p><button onclick="setView('home')" class="btn btn-secondary w-full">Back</button></div>`;
@@ -325,5 +334,17 @@
 
         render();
     </script>
+
+    <!-- PWA: Register Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('StationBrain SW registered:', reg.scope))
+                    .catch(err => console.warn('SW registration failed:', err));
+            });
+        }
+    </script>
+
 </body>
 </html>
