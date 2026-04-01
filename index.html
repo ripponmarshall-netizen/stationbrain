@@ -257,13 +257,17 @@
             body.classList.toggle('open');
             chev.classList.toggle('open');
         }
+
         async function copyLogReport(id) {
             const entry = loadLog().find(r => r.id === id);
             if (!entry) return;
-            const checks = entry.checks && entry.checks.length
-                ? `\\n\\nCHECKS:\\n` + entry.checks.map(c => `${c.label}: ${c.status}`).join('\\n')
-                : '';
-            const text = `REPORT: ${String(entry.mode || '').toUpperCase()}\\nGenerated: ${entry.timestamp || 'Not Entered'}\\n\\nADMIN:\\n${Object.entries(entry.admin || {}).map(([k, v]) => `${k}: ${v}`).join('\\n')}\\n\\nNARRATIVE:\\n${entry.narrative || 'No notes recorded.'}${checks}\\n\\nGenerated via StationBrain`;
+            const text = formatReportText({
+                mode: entry.mode,
+                timestamp: entry.timestamp || 'Not Entered',
+                admin: entry.admin || {},
+                narrative: entry.narrative || 'No notes recorded.',
+                checks: entry.checks || []
+            });
             try {
                 await navigator.clipboard.writeText(text);
                 alert("Report copied.");
@@ -717,13 +721,17 @@
                 : `1. General information only<br>StationBrain provides tools, logs, and reports for general information and record-keeping purposes at the station level. It does not provide professional, legal, medical, or safety-critical advice and must not be treated as the final authority for any operational, tactical, or staffing decision.<br><br>2. Not an official Jamaica Fire Brigade system<br>StationBrain is a personal tool used within the Jamaica Fire Brigade and is not an official, authorized, or mandated JFB system. It does not replace any official Brigade systems, forms, reports, or documentation and must not be used where the Brigade requires specific official records or platforms. In any conflict between StationBrain and official JFB policies, the official policies and orders always prevail.<br><br>3. No emergency or incident command function<br>StationBrain is not an emergency notification system, incident command platform, or life-safety device. It must never be relied on as the sole source for incident information, crew status, resource availability, or tactical decisions. Users must always follow official radio procedures, command decisions, and safety protocols.<br><br>4. No professional, medical, or legal advice<br>Nothing in StationBrain, including any data, analytics, guidance, or generated reports, is intended to constitute medical advice, legal advice, or any other kind of professional advice. Users must rely on their training, supervisors, and qualified professionals when making decisions that could affect health, safety, employment, or legal rights.`;
             container.innerHTML = `<div class="card p-8 space-y-4 shadow-sm"><h2 class="font-black text-xl text-blue-600 dark:text-blue-400">${h}</h2><p class="text-sm leading-relaxed text-slate-600 dark:text-slate-400">${p}</p><button onclick="goHome()" class="btn btn-secondary w-full">Back</button></div>`;
         }
+
         async function copyReport() {
             const r = state.report;
             if (!r) return;
-            const checks = r.checks && r.checks.length
-                ? `\\n\\nCHECKS:\\n` + r.checks.map(c => `${c.label}: ${c.status}`).join('\\n')
-                : '';
-            const text = `REPORT: ${String(state.mode || '').toUpperCase()}\\n\\nADMIN:\\n${Object.entries(r.admin || {}).map(([k, v]) => `${k}: ${v}`).join('\\n')}\\n\\nNARRATIVE:\\n${r.narrative || 'No notes recorded.'}${checks}\\n\\nGenerated via StationBrain`;
+            const text = formatReportText({
+                mode: state.mode,
+                timestamp: r.timestamp || new Date().toLocaleString('en-JM', { dateStyle: 'medium', timeStyle: 'short' }),
+                admin: r.admin || {},
+                narrative: r.narrative || 'No notes recorded.',
+                checks: r.checks || []
+            });
             try {
                 await navigator.clipboard.writeText(text);
                 alert("Report copied.");
