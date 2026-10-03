@@ -8,12 +8,19 @@ It is a single-file Progressive Web App: no build step, no server and no externa
 
 ## Features
 
-- **Three report types** with structured fields. Incident reports show house-fire or vehicle sections only when relevant, and work out time out of station (including returns after midnight).
+- **Three report types** with structured fields. Incident reports show house-fire or vehicle sections only when relevant, and work out time out of station and **pump time** (including past midnight).
+- **Fast entry**: *Now* buttons on every time, quick-pick suggestions for premises and origin, saved defaults for station, watch and District Officer, a section jump bar on long forms, and one-tap *Add incidents* into the handover summary.
+- Every report gets a short **reference number** (e.g. `SB-261003-1430`).
 - **Autosaved drafts**: entries save as you type and survive closing the app or the phone locking.
 - **Reports log** with search, type filters, edit-in-place (no duplicates) and delete with undo.
 - **Copy / Share / Print**: a plain-text report for messaging apps, or a print layout for PDF.
 - **Backup**: export and import all reports as JSON from *Settings*.
 - Light and dark themes (follows the system or set manually), large tap targets, works one-handed.
+
+## Support
+
+Questions or issues? ripponmarshall@yahoo.com
+Workflow Coaching and Optimisation · Portland Division
 
 ## Data & privacy
 

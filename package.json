@@ -1,6 +1,6 @@
 {
   "name": "stationbrain",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "private": true,
   "description": "JFB operational workstation PWA: incident reports, shift handover and debriefing.",
   "scripts": {
