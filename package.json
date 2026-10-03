@@ -1,0 +1,12 @@
+{
+  "name": "stationbrain",
+  "version": "2.2.0",
+  "private": true,
+  "description": "JFB operational workstation PWA: incident reports, shift handover and debriefing.",
+  "scripts": {
+    "test": "node tests/e2e.cjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.0"
+  }
+}
