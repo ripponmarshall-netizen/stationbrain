@@ -2,7 +2,7 @@
 // Page navigations: network-first (so updates land immediately) with a short
 // timeout and cache fallback, so the app still opens with no signal.
 // Other same-origin assets: stale-while-revalidate.
-const CACHE_NAME = 'stationbrain-v2-2-0';
+const CACHE_NAME = 'stationbrain-v2-3-0';
 const APP_SHELL = [
   './',
   './index.html',

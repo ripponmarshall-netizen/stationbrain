@@ -368,6 +368,107 @@ async function test(name, fn) {
     await ctx.close();
   });
 
+  console.log('v2.3 features');
+  await test('pump time is calculated live and included in the report', async () => {
+    const { ctx, page } = await newPage();
+    await ctx.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await fillIncident(page);
+    await page.fill('#f_pumpStart', '14:45');
+    await page.fill('#f_pumpStop', '15:30');
+    assert.match(await page.textContent('[data-duration][data-from="pumpStart"]'), /Pump time: 45 min/);
+    await page.click('[data-action="generate"]');
+    await page.waitForSelector('#report');
+    await page.click('[data-action="copy-report"]');
+    const clip = await page.evaluate(() => navigator.clipboard.readText());
+    assert.match(clip, /Pump Time: 45 min \(14:45–15:30\)/);
+    await ctx.close();
+  });
+  await test('pump time with only a start time is still recorded', async () => {
+    const { ctx, page } = await newPage();
+    const r = await page.evaluate(() => [pumpText('14:45', ''), pumpText('', ''), pumpText('23:50', '00:20')]);
+    assert.deepEqual(r, ['Started 14:45', 'Not Entered', '30 min (23:50–00:20, past midnight)']);
+    await ctx.close();
+  });
+  await test('footnote shows on every screen and ends every copied report with a reference', async () => {
+    const { ctx, page } = await newPage();
+    await ctx.grantPermissions(['clipboard-read', 'clipboard-write']);
+    const foot = async () => {
+      assert.ok(await page.locator('#appFoot').isVisible());
+      assert.match(await page.textContent('#appFoot'), /Questions or issues\? ripponmarshall@yahoo\.com/);
+      assert.match(await page.textContent('#appFoot'), /Workflow Coaching and Optimisation · Portland Division/);
+    };
+    await foot();
+    assert.equal(await page.getAttribute('#appFoot a', 'href'), 'mailto:ripponmarshall@yahoo.com?subject=StationBrain');
+    await fillIncident(page);
+    await foot();
+    await page.click('[data-action="generate"]');
+    await page.waitForSelector('#report');
+    await foot();
+    assert.match(await page.textContent('.report-band .ref'), /^SB-\d{6}-\d{4}$/);
+    await page.click('[data-action="copy-report"]');
+    const clip = await page.evaluate(() => navigator.clipboard.readText());
+    assert.match(clip, /REFERENCE: SB-\d{6}-\d{4}\n/);
+    assert.match(clip, /-{40}\nQuestions or issues\? ripponmarshall@yahoo\.com\nWorkflow Coaching and Optimisation · Portland Division$/);
+    for (const view of ['settings', 'about', 'legal', 'log']) {
+      await page.goto(`${BASE}/index.html?${view}`);
+      await page.click(`[data-view="${view}"]`);
+      await foot();
+    }
+    await ctx.close();
+  });
+  await test('saved watch and District Officer pre-fill new reports without creating drafts', async () => {
+    const { ctx, page } = await newPage();
+    await page.click('[data-view="settings"]');
+    await page.click('[data-action="pref-watch"][data-value="C"]');
+    await page.fill('#prefDO', 'D.O. Campbell');
+    await page.click('#backBtn');
+    assert.match(await page.textContent('.hero-tags'), /Watch C/);
+    await page.click('[data-mode="handover"]');
+    assert.equal(await page.getAttribute('[data-field="watch"][data-value="C"]', 'aria-pressed'), 'true');
+    assert.equal(await page.inputValue('#f_districtOfficer'), 'D.O. Campbell');
+    await page.click('[data-action="home"]');
+    await page.waitForSelector('[data-mode="handover"]');
+    assert.doesNotMatch(await page.textContent('[data-mode="handover"]'), /Draft/);
+    await ctx.close();
+  });
+  await test('handover can pull in the day\'s incidents once', async () => {
+    const { ctx, page } = await newPage();
+    await fillIncident(page, { loc: 'Bay Road' });
+    await page.click('[data-action="generate"]');
+    await page.waitForSelector('#report');
+    await page.click('#backBtn');
+    await page.click('[data-mode="handover"]');
+    const btn = page.locator('[data-action="add-incidents"]');
+    assert.match(await btn.textContent(), /Add incidents \(1\)/);
+    await btn.click();
+    assert.match(await page.inputValue('#f_summary'), /^Incidents attended:\n• 14:30 House Fire — Bay Road$/);
+    await btn.click();
+    assert.equal((await page.inputValue('#f_summary')).match(/Bay Road/g).length, 1);
+    await page.fill('#f_date', '2020-01-01');
+    assert.ok(await btn.isHidden());
+    await ctx.close();
+  });
+  await test('section jump bar scrolls to sections and marks completed ones', async () => {
+    const { ctx, page } = await newPage();
+    await page.click('[data-mode="incident"]');
+    assert.equal(await page.locator('#sectionNav button:visible').count(), 6);
+    await page.click('[data-action="jump"]:has-text("Narrative")');
+    await page.waitForFunction(() => document.querySelector('[data-action="jump"].active') && document.querySelector('[data-action="jump"].active').textContent.includes('Narrative'));
+    await page.evaluate(() => document.querySelector('[data-field="incidentType"][data-value="mva"]').click());
+    assert.ok(await page.locator('[data-action="jump"]:has-text("Vehicle")').isVisible());
+    assert.equal(await page.locator('[data-action="jump"]:has-text("Type") .dot.done').count(), 1);
+    assert.equal(await page.locator('[data-action="jump"]:has-text("Location") .dot.done').count(), 0);
+    assert.ok(await noOverflow(page));
+    await ctx.close();
+  });
+  await test('premises and origin offer quick-pick suggestions', async () => {
+    const { ctx, page } = await newPage();
+    await page.click('[data-mode="incident"]');
+    assert.equal(await page.getAttribute('#f_typePremises', 'list'), 'dl_typePremises');
+    assert.ok(await page.locator('#dl_supposedOrigin option[value="Electrical fault"]').count() === 1);
+    await ctx.close();
+  });
+
   console.log('Offline');
   await test('app shell works offline after first visit', async () => {
     const { ctx, page } = await newPage();
