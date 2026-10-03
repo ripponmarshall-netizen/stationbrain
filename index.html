@@ -2,838 +2,1947 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>StationBrain | JFB Operational Workstation</title>
+    <meta name="description" content="Station-level incident reporting, shift handover and debriefing for JFB crews. Works offline.">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2563eb">
+    <link rel="icon" type="image/png" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <meta name="theme-color" content="#f1f5f9" id="metaTheme">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="StationBrain">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        // Resolve theme before first paint to avoid a light/dark flash.
+        (function () {
+            var pref = 'system';
+            try { pref = (JSON.parse(localStorage.getItem('stationbrain_prefs')) || {}).theme || 'system'; } catch (e) {}
+            var dark = pref === 'dark' || (pref !== 'light' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+            document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        })();
+    </script>
     <style>
         :root {
-            --bg-page: #f1f5f9;
-            --bg-card: #ffffff;
-            --text-main: #0f172a;
-            --text-label: #1e40af;
-            --border-color: #cbd5e1;
-            --accent-blue: #2563eb;
-            --accent-green: #059669;
-            --accent-red: #dc2626;
-            --focus-ring: rgba(37, 99, 235, 0.15);
+            --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, sans-serif;
+            --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            --bg: #f1f5f9;
+            --bg-outer: #e2e8f0;
+            --surface: #ffffff;
+            --surface-2: #f1f5f9;
+            --input-bg: #ffffff;
+            --text: #0f172a;
+            --text-2: #334155;
+            --muted: #64748b;
+            --border: #e2e8f0;
+            --border-strong: #cbd5e1;
+            --primary: #2563eb;
+            --primary-text: #1d4ed8;
+            --primary-soft: #dbeafe;
+            --danger: #dc2626;
+            --danger-soft: #fee2e2;
+            --success: #16a34a;
+            --success-text: #15803d;
+            --success-soft: #dcfce7;
+            --warn-text: #b45309;
+            --warn-soft: #fef3c7;
+            --fire: #ea580c;
+            --fire-soft: #ffedd5;
+            --violet: #7c3aed;
+            --violet-soft: #ede9fe;
+            --toast-bg: #0f172a;
+            --toast-text: #f8fafc;
+            --focus: #2563eb;
+            --focus-soft: rgba(37, 99, 235, 0.18);
+            --primary-solid: #2563eb;
+            --danger-solid: #dc2626;
+            --success-solid: #15803d;
+            --shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.07);
+            --shadow-lg: 0 10px 30px rgba(15, 23, 42, 0.18);
+            color-scheme: light;
         }
-        .dark {
-            --bg-page: #0f172a;
-            --bg-card: #1e293b;
-            --text-main: #f8fafc;
-            --text-label: #7dd3fc;
-            --border-color: #334155;
-            --accent-blue: #3b82f6;
-            --accent-green: #10b981;
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --bg: #0b1120; --bg-outer: #060a14; --surface: #111a2e; --surface-2: #0d1526; --input-bg: #0d1526;
+                --text: #e5edf7; --text-2: #c3cfdf; --muted: #8b9ab0; --border: #1f2a40; --border-strong: #2c3a55;
+                --primary: #3b82f6; --primary-text: #93c5fd; --primary-soft: rgba(59, 130, 246, 0.16);
+                --danger: #f87171; --danger-soft: rgba(248, 113, 113, 0.14);
+                --success: #16a34a; --success-text: #86efac; --success-soft: rgba(34, 197, 94, 0.14);
+                --warn-text: #fcd34d; --warn-soft: rgba(245, 158, 11, 0.16);
+                --fire: #fb923c; --fire-soft: rgba(251, 146, 60, 0.15); --violet: #c4b5fd; --violet-soft: rgba(139, 92, 246, 0.18);
+                --toast-bg: #e5edf7; --toast-text: #0b1120; --focus: #60a5fa; --focus-soft: rgba(59, 130, 246, 0.3);
+                --shadow: 0 1px 2px rgba(0, 0, 0, 0.3); --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+                color-scheme: dark;
+            }
         }
-        html, body { height: 100%; }
+        :root[data-theme="dark"] {
+            --bg: #0b1120; --bg-outer: #060a14; --surface: #111a2e; --surface-2: #0d1526; --input-bg: #0d1526;
+            --text: #e5edf7; --text-2: #c3cfdf; --muted: #8b9ab0; --border: #1f2a40; --border-strong: #2c3a55;
+            --primary: #3b82f6; --primary-text: #93c5fd; --primary-soft: rgba(59, 130, 246, 0.16);
+            --danger: #f87171; --danger-soft: rgba(248, 113, 113, 0.14);
+            --success: #16a34a; --success-text: #86efac; --success-soft: rgba(34, 197, 94, 0.14);
+            --warn-text: #fcd34d; --warn-soft: rgba(245, 158, 11, 0.16);
+            --fire: #fb923c; --fire-soft: rgba(251, 146, 60, 0.15); --violet: #c4b5fd; --violet-soft: rgba(139, 92, 246, 0.18);
+            --toast-bg: #e5edf7; --toast-text: #0b1120; --focus: #60a5fa; --focus-soft: rgba(59, 130, 246, 0.3);
+            --shadow: 0 1px 2px rgba(0, 0, 0, 0.3); --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+            color-scheme: dark;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        [hidden] { display: none !important; }
+        html { -webkit-text-size-adjust: 100%; background: var(--bg-outer); }
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-page);
-            color: var(--text-main);
-            transition: background-color 0.3s;
             margin: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            background: var(--bg-outer);
+            color: var(--text);
+            font: 400 16px/1.5 var(--font);
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
         }
-        .card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 1.25rem;
-            transition: background-color 0.3s, border-color 0.3s;
+        button, input, select, textarea { font: inherit; color: inherit; }
+        button { cursor: pointer; touch-action: manipulation; }
+        :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+        h1, h2, h3, p { margin: 0; }
+
+        .shell {
+            max-width: 560px;
+            margin: 0 auto;
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg);
         }
-        label {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-label);
-            margin-bottom: 0.4rem;
-            padding-left: 0.1rem;
+        @media (min-width: 600px) {
+            .shell { border-left: 1px solid var(--border); border-right: 1px solid var(--border); }
         }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.85rem 1rem;
-            border-radius: 0.75rem;
-            border: 2px solid var(--border-color);
-            background-color: var(--bg-card);
-            color: var(--text-main);
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.2s ease;
-            font-weight: 500;
-            box-sizing: border-box;
-        }
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px var(--focus-ring);
-        }
-        .btn {
-            display: inline-flex;
+
+        /* Header */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 1rem 1.5rem;
-            border-radius: 0.75rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-size: 0.75rem;
-            transition: all 0.2s;
-            border: 2.5px solid transparent;
-            cursor: pointer;
+            gap: 8px;
+            padding: calc(10px + env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 10px max(12px, env(safe-area-inset-left));
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
         }
-        .btn-primary {
-            background-color: var(--accent-blue);
-            color: #ffffff;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+            .topbar {
+                background: color-mix(in srgb, var(--bg) 82%, transparent);
+                -webkit-backdrop-filter: saturate(180%) blur(14px);
+                backdrop-filter: saturate(180%) blur(14px);
+            }
         }
-        .btn-secondary {
-            background-color: var(--bg-card);
-            border-color: var(--text-main);
-            color: var(--text-main);
-            border: 2.2px solid;
-        }
-        .btn-ghost-red {
-            color: var(--accent-red);
-            font-size: 0.75rem;
-            font-weight: 800;
-            text-decoration: underline;
+        .brand-icon { width: 36px; height: 36px; border-radius: 10px; flex: 0 0 auto; }
+        .topbar-text { flex: 1; min-width: 0; }
+        .topbar-title { font-size: 17px; font-weight: 750; letter-spacing: -0.01em; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .topbar-sub { font-size: 12px; color: var(--muted); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .icon-btn {
+            width: 40px; height: 40px;
+            display: grid; place-items: center;
+            border-radius: 12px;
+            border: 1px solid transparent;
             background: transparent;
+            color: var(--text-2);
+            flex: 0 0 auto;
         }
-        .report-accent { border-left: 6px solid var(--accent-blue); }
-        .spinner {
-            border: 3px solid rgba(0,0,0,0.1);
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border-left-color: var(--accent-blue);
-            animation: spin 1s linear infinite;
+        .icon-btn:hover { background: var(--surface-2); }
+        .save-state {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 12px; font-weight: 600; color: var(--success-text);
+            opacity: 0; transition: opacity 0.3s;
+            white-space: nowrap;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .hidden { display: none !important; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .log-body {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.35s ease;
+        .save-state.show { opacity: 1; }
+        .save-state .ico { width: 14px; height: 14px; }
+
+        .ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+
+        main {
+            flex: 1;
+            padding: 16px max(16px, env(safe-area-inset-right)) 28px max(16px, env(safe-area-inset-left));
+            outline: none;
         }
-        .log-body.open { max-height: 3000px; }
-        .log-chevron {
-            transition: transform 0.3s ease;
-            display: inline-block;
+
+        .stack { display: grid; gap: 16px; }
+        .stack-sm { display: grid; gap: 10px; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .row > * { min-width: 0; }
+        @media (max-width: 350px) { .row { grid-template-columns: 1fr; } }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
         }
-        .log-chevron.open { transform: rotate(180deg); }
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 1.35rem;
-            height: 1.35rem;
-            padding: 0 0.3rem;
-            border-radius: 9999px;
-            font-size: 0.6rem;
-            font-weight: 900;
-            background-color: var(--accent-blue);
-            color: #fff;
+
+        /* Buttons */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            min-height: 48px;
+            padding: 0 18px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            background: transparent;
+            font-weight: 650;
+            font-size: 15px;
+            line-height: 1.1;
+            text-align: center;
+            transition: background-color 0.15s, border-color 0.15s, transform 0.08s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--primary-solid); color: #fff; }
+        .btn-primary:hover { filter: brightness(1.06); }
+        .btn-secondary { background: var(--surface); border-color: var(--border-strong); color: var(--text); }
+        .btn-secondary:hover { background: var(--surface-2); }
+        .btn-danger-outline { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
+        .btn-ghost { color: var(--primary-text); }
+        .btn-ghost-danger { color: var(--danger); }
+        .btn-block { width: 100%; }
+        .btn-sm { min-height: 40px; padding: 0 14px; font-size: 14px; border-radius: 10px; }
+        .mini-btn {
+            display: inline-flex; align-items: center; gap: 4px;
+            min-height: 32px; padding: 0 12px;
+            border: 0; border-radius: 999px;
+            background: var(--primary-soft); color: var(--primary-text);
+            font-size: 12px; font-weight: 700;
+            white-space: nowrap;
+        }
+        .mini-btn .ico { width: 14px; height: 14px; }
+
+        /* Action bar */
+        .action-bar {
+            position: sticky;
+            bottom: 0;
+            z-index: 30;
+            display: flex;
+            gap: 10px;
+            padding: 12px max(16px, env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.06);
+        }
+        .action-bar .btn { flex: 1; padding: 0 12px; }
+        .action-bar .btn-grow { flex: 1.8; }
+
+        /* Home */
+        .hero { padding: 4px 4px 0; }
+        .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+        .hero-title { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin-top: 2px; }
+        .nav-card {
+            display: flex; align-items: center; gap: 14px;
+            width: 100%; padding: 16px;
+            text-align: left;
+            color: var(--text);
+            transition: border-color 0.15s, transform 0.08s;
+        }
+        .nav-card:hover { border-color: var(--border-strong); }
+        .nav-card:active { transform: scale(0.99); }
+        .nav-card > .ico:last-child { color: var(--muted); }
+        .nav-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+        .nav-title { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .nav-desc { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tile { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; flex: 0 0 auto; }
+        .tile .ico { width: 24px; height: 24px; }
+        .tile-sm { width: 28px; height: 28px; border-radius: 8px; }
+        .tile-sm .ico { width: 16px; height: 16px; }
+        .tile-md { width: 40px; height: 40px; border-radius: 12px; }
+        .tile-md .ico { width: 20px; height: 20px; }
+        .tile-incident { background: var(--fire-soft); color: var(--fire); }
+        .tile-handover { background: var(--primary-soft); color: var(--primary-text); }
+        .tile-debriefing { background: var(--violet-soft); color: var(--violet); }
+        .tile-log { background: var(--surface-2); color: var(--text-2); }
+        .pill {
+            display: inline-flex; align-items: center;
+            font-size: 11px; font-weight: 700;
+            padding: 2px 8px; border-radius: 999px;
+            background: var(--warn-soft); color: var(--warn-text);
+            white-space: nowrap;
+        }
+        .pill-blue { background: var(--primary-soft); color: var(--primary-text); }
+        .pill-green { background: var(--success-soft); color: var(--success-text); }
+        .count {
+            min-width: 24px; height: 24px; padding: 0 7px;
+            display: inline-grid; place-items: center;
+            border-radius: 999px;
+            background: var(--primary-solid); color: #fff;
+            font-size: 12px; font-weight: 800;
+        }
+        .footer-links { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; padding-top: 8px; }
+        .footer-links .btn { min-height: 40px; font-size: 14px; color: var(--muted); padding: 0 12px; }
+        .version { text-align: center; font-size: 12px; color: var(--muted); }
+
+        /* Forms */
+        .form-section { padding: 16px; display: grid; gap: 16px; }
+        .section-title {
+            font-size: 12px; font-weight: 800;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            color: var(--primary-text);
+        }
+        .field { display: grid; gap: 6px; min-width: 0; align-content: start; }
+        .label-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 22px; }
+        .label { font-size: 14px; font-weight: 650; color: var(--text-2); }
+        .req { color: var(--danger); }
+        .input {
+            width: 100%;
+            min-height: 48px;
+            padding: 11px 14px;
+            border: 1px solid var(--border-strong);
+            border-radius: 12px;
+            background-color: var(--input-bg);
+            color: var(--text);
+            font-size: 16px;
+            line-height: 1.4;
+            -webkit-appearance: none;
+            appearance: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .input::placeholder { color: var(--muted); opacity: 0.8; }
+        .input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--focus-soft); }
+        select.input {
+            padding-right: 40px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 18px;
+        }
+        input[type="date"].input, input[type="time"].input { display: block; text-align: left; }
+        input::-webkit-date-and-time-value { text-align: left; }
+        textarea.input { min-height: 104px; resize: vertical; line-height: 1.55; }
+        .help { font-size: 13px; color: var(--muted); }
+        .field-error { display: none; font-size: 13px; font-weight: 600; color: var(--danger); }
+        .field.invalid .field-error { display: block; }
+        .field.invalid .input, .field.invalid .seg, .field.invalid .chips { border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); border-radius: 12px; }
+        .field.invalid .chips { border: 1px solid var(--danger); padding: 4px; }
+        .hint {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: var(--primary-soft);
+            color: var(--primary-text);
+            font-size: 14px; font-weight: 600;
+        }
+        .hint .ico { width: 18px; height: 18px; }
+
+        .seg {
+            display: flex; gap: 4px; padding: 4px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+        .seg button {
+            flex: 1; min-width: 0;
+            min-height: 40px;
+            border: 0; border-radius: 9px;
+            background: transparent;
+            color: var(--text-2);
+            font-size: 15px; font-weight: 650;
+            transition: background-color 0.15s, color 0.15s;
+        }
+        .seg button[aria-pressed="true"] { background: var(--primary-solid); color: #fff; box-shadow: var(--shadow); }
+        .seg .opt-yes[aria-pressed="true"] { background: var(--success-solid); }
+        .seg .opt-no[aria-pressed="true"] { background: var(--danger-solid); }
+        .chips { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .chips button {
+            min-height: 52px;
+            padding: 8px 12px;
+            border: 1px solid var(--border-strong);
+            border-radius: 12px;
+            background: var(--surface);
+            color: var(--text);
+            font-size: 14px; font-weight: 650;
+            text-align: left; line-height: 1.25;
+            transition: background-color 0.15s, border-color 0.15s;
+        }
+        .chips button[aria-pressed="true"] {
+            border-color: var(--primary);
+            background: var(--primary-soft);
+            color: var(--primary-text);
+            box-shadow: inset 0 0 0 1px var(--primary);
+        }
+
+        .checklist-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .progress { height: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+        .progress > span { display: block; height: 100%; width: 0; background: var(--success); border-radius: 999px; transition: width 0.25s; }
+        .check-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); }
+        .check-row:first-child { border-top: 0; }
+        .check-label { font-size: 15px; font-weight: 500; min-width: 0; }
+        .seg-sm { flex: 0 0 auto; width: 128px; }
+        .seg-sm button { min-height: 36px; font-size: 14px; }
+
+        .banner {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 14px;
+            border-radius: 14px;
+            background: var(--primary-soft);
+            color: var(--primary-text);
+        }
+        .banner-text { flex: 1; min-width: 0; font-size: 14px; }
+        .banner-text strong { display: block; font-weight: 700; }
+        .banner-text p { color: var(--text-2); }
+        .banner .mini-btn { background: var(--surface); }
+
+        /* Report */
+        .report-head { padding: 18px; display: grid; gap: 6px; }
+        .report-kicker { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+        .report-title { font-size: 22px; font-weight: 800; letter-spacing: -0.015em; line-height: 1.25; overflow-wrap: anywhere; }
+        .report-sub { font-size: 15px; color: var(--text-2); font-weight: 500; overflow-wrap: anywhere; }
+        .report-meta { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin-top: 4px; flex-wrap: wrap; }
+        .report-meta .ico { width: 14px; height: 14px; }
+        .report-section { padding: 16px; display: grid; gap: 10px; }
+        .section-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .kv { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); margin: 0; }
+        .kv dt, .kv dd { margin: 0; padding: 9px 0; border-top: 1px solid var(--border); font-size: 14px; }
+        .kv > :nth-child(-n+2) { border-top: 0; padding-top: 0; }
+        .kv dt { color: var(--muted); padding-right: 12px; }
+        .kv dd { font-weight: 650; text-align: right; overflow-wrap: anywhere; white-space: pre-wrap; }
+        .empty { color: var(--muted) !important; font-weight: 500 !important; font-style: italic; }
+        .prose { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.6; }
+        .block + .block { padding-top: 10px; border-top: 1px solid var(--border); }
+        .block-label { font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 2px; }
+        .checks { list-style: none; margin: 0; padding: 0; }
+        .checks li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--border); font-size: 14px; }
+        .checks li:first-child { border-top: 0; padding-top: 0; }
+        .status { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 750; white-space: nowrap; }
+        .status .ico { width: 13px; height: 13px; stroke-width: 3; }
+        .status-yes { background: var(--success-soft); color: var(--success-text); }
+        .status-no { background: var(--danger-soft); color: var(--danger); }
+        .status-unset { background: var(--warn-soft); color: var(--warn-text); }
+        details.plain { padding: 0; overflow: hidden; }
+        details.plain summary { padding: 14px 16px; font-size: 14px; font-weight: 650; color: var(--text-2); cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; }
+        details.plain summary::-webkit-details-marker { display: none; }
+        details.plain summary .ico { transition: transform 0.2s; color: var(--muted); }
+        details.plain[open] summary .ico { transform: rotate(180deg); }
+        details.plain pre {
+            margin: 0; padding: 14px 16px 16px;
+            border-top: 1px solid var(--border);
+            font: 12.5px/1.55 var(--mono);
+            white-space: pre-wrap; overflow-wrap: anywhere;
+            color: var(--text-2);
+            background: var(--surface-2);
+            -webkit-user-select: text; user-select: text;
+        }
+
+        /* Log */
+        .search {
+            position: relative;
+        }
+        .search .ico { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+        .search .input { padding-left: 44px; }
+        .filters { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+        .filters::-webkit-scrollbar { display: none; }
+        .filter {
+            flex: 0 0 auto;
+            min-height: 36px; padding: 0 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border-strong);
+            background: var(--surface);
+            font-size: 14px; font-weight: 650; color: var(--text-2);
+        }
+        .filter[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+        .day-label { font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 6px 4px 0; }
+        .list-item {
+            display: flex; align-items: center; gap: 12px;
+            width: 100%; padding: 12px 14px;
+            text-align: left; color: var(--text);
+        }
+        .list-item:hover { border-color: var(--border-strong); }
+        .item-text { flex: 1; min-width: 0; display: grid; gap: 1px; }
+        .item-title { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-sub { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-time { font-size: 12px; color: var(--muted); font-weight: 600; flex: 0 0 auto; text-align: right; display: grid; justify-items: end; gap: 4px; }
+        .empty-state { display: grid; justify-items: center; gap: 10px; text-align: center; padding: 48px 16px; }
+        .empty-state .tile { width: 64px; height: 64px; border-radius: 20px; }
+        .empty-state .tile .ico { width: 30px; height: 30px; }
+        .empty-title { font-size: 17px; font-weight: 700; }
+        .empty-text { font-size: 14px; color: var(--muted); max-width: 300px; }
+
+        /* Settings / pages */
+        .settings-group { padding: 16px; display: grid; gap: 14px; }
+        .settings-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .settings-label { font-weight: 650; font-size: 15px; }
+        .settings-desc { font-size: 13px; color: var(--muted); }
+        .page { padding: 20px; display: grid; gap: 14px; }
+        .page h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+        .page h3 { font-size: 15px; font-weight: 750; margin-top: 4px; }
+        .page p { font-size: 15px; line-height: 1.65; color: var(--text-2); }
+
+        /* Toast & dialog */
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: calc(20px + env(safe-area-inset-bottom));
+            z-index: 60;
+            display: flex; align-items: center; gap: 14px;
+            width: max-content;
+            max-width: min(528px, calc(100% - 32px));
+            padding: 12px 14px 12px 16px;
+            border-radius: 14px;
+            background: var(--toast-bg);
+            color: var(--toast-text);
+            box-shadow: var(--shadow-lg);
+            font-size: 14px; font-weight: 600;
+            opacity: 0;
+            transform: translate(-50%, 16px);
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+        .toast.error { background: var(--danger-solid); color: #fff; }
+        body.has-actions .toast { bottom: calc(88px + env(safe-area-inset-bottom)); }
+        .toast-action { border: 0; background: transparent; color: inherit; font-weight: 800; text-decoration: underline; padding: 4px; min-height: 32px; }
+
+        dialog {
+            width: min(400px, calc(100% - 32px));
+            padding: 0;
+            border: 0;
+            border-radius: 18px;
+            background: var(--surface);
+            color: var(--text);
+            box-shadow: var(--shadow-lg);
+        }
+        dialog::backdrop { background: rgba(2, 6, 23, 0.55); }
+        .dialog-body { padding: 20px 20px 8px; display: grid; gap: 8px; }
+        .dialog-title { font-size: 18px; font-weight: 750; }
+        .dialog-msg { font-size: 15px; color: var(--text-2); line-height: 1.5; }
+        .dialog-actions { display: flex; gap: 10px; padding: 16px 20px 20px; }
+        .dialog-actions .btn { flex: 1; }
+        .btn-danger { background: var(--danger-solid); color: #fff; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { transition: none !important; animation: none !important; }
+        }
+
+        @media print {
+            :root, :root[data-theme="dark"] {
+                --bg: #fff; --bg-outer: #fff; --surface: #fff; --surface-2: #fff; --text: #000; --text-2: #111; --muted: #444;
+                --border: #bbb; --primary-text: #000; --success-text: #000; --warn-text: #000; --danger: #000;
+                --success-soft: transparent; --danger-soft: transparent; --warn-soft: transparent; --shadow: none;
+                color-scheme: light;
+            }
+            .topbar, .action-bar, .toast, .no-print, dialog { display: none !important; }
+            .shell { max-width: none; border: 0; }
+            main { padding: 0; }
+            .card { box-shadow: none; break-inside: avoid; border-radius: 6px; }
+            .tile { display: none; }
         }
     </style>
 </head>
-<body class="light">
-    <div class="max-w-md mx-auto flex flex-col min-h-screen relative shadow-2xl bg-inherit no-scrollbar">
-        <header class="p-4 flex justify-between items-center sticky top-0 z-50 card border-b rounded-none shadow-sm">
-            <div>
-                <h1 class="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">StationBrain</h1>
-                <p id="viewLabel" class="text-[10px] uppercase tracking-widest font-black text-blue-600 dark:text-blue-400">JFB Workstation</p>
+<body>
+    <div class="shell">
+        <header class="topbar">
+            <button class="icon-btn" id="backBtn" data-action="back" aria-label="Back" hidden></button>
+            <img src="icons/icon-192.png" alt="" class="brand-icon" id="brandIcon">
+            <div class="topbar-text">
+                <h1 class="topbar-title" id="viewTitle">StationBrain</h1>
+                <p class="topbar-sub" id="viewSubtitle">JFB Workstation</p>
             </div>
-            <button onclick="toggleThemeManual()" class="p-2 rounded-full bg-slate-200 dark:bg-slate-800 text-lg" id="themeIcon" aria-label="Toggle theme">🌙</button>
+            <span class="save-state" id="saveState" aria-live="polite"></span>
+            <button class="icon-btn" id="themeBtn" data-action="toggle-theme" aria-label="Toggle theme"></button>
         </header>
-        <main id="appBody" class="flex-1 p-4 space-y-6"></main>
-        <nav id="bottomNav" class="p-4 card border-t rounded-none space-y-4 hidden sticky bottom-0 z-40 bg-inherit shadow-2xl">
-            <div class="flex gap-2">
-                <button onclick="goHome()" class="btn btn-secondary flex-1">Menu</button>
-                <button id="actionBtn" class="btn btn-primary flex-[2]">Generate</button>
-            </div>
-            <button onclick="clearCurrentForm()" class="btn btn-ghost-red w-full uppercase">Wipe Current Entries</button>
-        </nav>
-        <footer class="p-8 border-t dark:border-slate-800 space-y-8 bg-slate-50 dark:bg-slate-900/40">
-            <div class="flex justify-center gap-4 text-[10px] font-black uppercase text-blue-600 dark:text-blue-400">
-                <button onclick="goHome()">Home</button>
-                <button onclick="setView('about')">About</button>
-                <button onclick="setView('disclaimer')">Legal</button>
-            </div>
-        </footer>
+        <main id="app" tabindex="-1"></main>
+        <div class="action-bar" id="actionBar" hidden></div>
     </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <dialog id="dialog" aria-labelledby="dialogTitle">
+        <form method="dialog">
+            <div class="dialog-body">
+                <h2 class="dialog-title" id="dialogTitle"></h2>
+                <p class="dialog-msg" id="dialogMsg"></p>
+            </div>
+            <div class="dialog-actions">
+                <button class="btn btn-secondary" value="cancel" id="dialogCancel">Cancel</button>
+                <button class="btn btn-primary" value="ok" id="dialogOk">Confirm</button>
+            </div>
+        </form>
+    </dialog>
+
+    <input type="file" id="importFile" accept="application/json,.json" hidden>
+
     <script>
-        let state = {
-            theme: 'light',
-            view: 'home',
-            mode: null,
-            incidentType: 'house_fire',
-            formData: { respondingStation: 'Port Antonio' },
-            report: null
-        };
+    'use strict';
 
-        const STATIONS = [
-            'Port Antonio', 'Buff Bay', 'Annotto Bay', 'Port Maria', "St Ann's Bay", 'Ocho Rios',
-            'Falmouth', 'Montego Bay', 'Ironshore', 'Lucea', 'Savanna-la-Mar', 'Negril',
-            'Black River', 'Santa Cruz', 'Junction', 'May Pen', 'Mandeville', 'Spanish Town',
-            'Linstead', 'Old Harbour', 'Half-Way Tree', 'York Park', 'Port Royal', 'Morant Bay',
-            'Stony Hill', 'Trench Town', 'Rollington Town', 'Newport West'
-        ];
+    const APP_VERSION = '2.2.0';
+    const KEYS = { log: 'stationbrain_log', drafts: 'stationbrain_drafts', prefs: 'stationbrain_prefs' };
 
-        const CHECKS = [
-            "Occurrence Book Checked",
-            "Telephone Book Checked",
-            "Unit Checked",
-            "Equipment Checked",
-            "Checklist Signed",
-            "Forecast Done",
-            "Status Book Written Up",
-            "Status Book Signed"
-        ];
+    const STATIONS = [
+        'Port Antonio', 'Buff Bay', 'Annotto Bay', 'Port Maria', "St Ann's Bay", 'Ocho Rios',
+        'Falmouth', 'Montego Bay', 'Ironshore', 'Lucea', 'Savanna-la-Mar', 'Negril',
+        'Black River', 'Santa Cruz', 'Junction', 'May Pen', 'Mandeville', 'Spanish Town',
+        'Linstead', 'Old Harbour', 'Half-Way Tree', 'York Park', 'Port Royal', 'Morant Bay',
+        'Stony Hill', 'Trench Town', 'Rollington Town', 'Newport West'
+    ];
 
-        function formatReportText({ mode, timestamp, admin = {}, narrative = '', checks = [], classes = '', activities = '' }) {
-            const lines = [];
-            lines.push('STATIONBRAIN REPORT');
-            lines.push('----------------------------------------');
-            lines.push(`REPORT TYPE: ${String(mode || '').toUpperCase()}`);
-            if (timestamp) lines.push(`GENERATED: ${timestamp}`);
-            lines.push('');
-            lines.push('ADMINISTRATION');
-            lines.push('----------------------------------------');
-            const adminEntries = Object.entries(admin || {});
-            if (adminEntries.length) {
-                adminEntries.forEach(([k, v]) => lines.push(`${k}: ${v}`));
-            } else {
-                lines.push('No administration details entered.');
-            }
-            lines.push('');
-            lines.push('NARRATIVE');
-            lines.push('----------------------------------------');
-            lines.push(narrative || 'No notes recorded.');
-            if (checks && checks.length) {
-                lines.push('');
-                lines.push('CHECKS');
-                lines.push('----------------------------------------');
-                checks.forEach(c => lines.push(`${c.label}: ${c.status}`));
-            }
-            if (classes || activities) {
-                lines.push('');
-                lines.push('CLASSES & ACTIVITIES');
-                lines.push('----------------------------------------');
-                lines.push(`Classes Conducted: ${classes || 'Not Entered'}`);
-                lines.push(`Activities Completed: ${activities || 'Not Entered'}`);
-            }
-            return lines.join('\n');
+    const CHECKS = [
+        'Occurrence Book Checked',
+        'Telephone Book Checked',
+        'Unit Checked',
+        'Equipment Checked',
+        'Checklist Signed',
+        'Forecast Done',
+        'Status Book Written Up',
+        'Status Book Signed'
+    ];
+
+    const INCIDENT_TYPES = [
+        { value: 'house_fire', label: 'House Fire' },
+        { value: 'mv_fire', label: 'Motor Vehicle Fire' },
+        { value: 'bush_rubbish_electrical', label: 'Bush / Rubbish / Electrical' },
+        { value: 'mva', label: 'MVA' },
+        { value: 'false_alarm', label: 'False Alarm' },
+        { value: 'special_service', label: 'Special Service' }
+    ];
+    const VEHICLE_TYPES = ['mv_fire', 'mva'];
+    const WATCH_OPTS = ['A', 'B', 'C', 'D'].map(w => ({ value: w, label: w }));
+    const YES_NO = [{ value: 'yes', label: 'Yes' }, { value: 'no', label: 'No' }];
+
+    const MODES = {
+        incident: { title: 'Incident Report', desc: 'Narrative & administration', icon: 'flame', short: 'Incident' },
+        handover: { title: 'Shift Handover', desc: 'Watch accountability & checklist', icon: 'repeat', short: 'Handover' },
+        debriefing: { title: 'Debriefing', desc: 'Operational review', icon: 'clipboard', short: 'Debrief' }
+    };
+
+    const NE = 'Not Entered';
+    const EMPTY_VALUES = new Set([NE, 'None recorded', 'No notes recorded.']);
+    const STATUS_LABEL = { yes: 'Done', no: 'No', unset: 'Not stated' };
+    const STATUS_TEXT = { yes: '✅ DONE', no: '❌ NO', unset: '⚠️ NOT STATED' };
+
+    // ---------- Safe HTML templating ----------
+    // Every interpolated value is escaped unless explicitly wrapped with raw().
+    const ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    const esc = s => String(s).replace(/[&<>"']/g, c => ESC[c]);
+    class Safe { constructor(s) { this.s = s; } toString() { return this.s; } }
+    const raw = s => new Safe(String(s));
+    function fmt(v) {
+        if (v == null || v === false) return '';
+        if (v instanceof Safe) return v.s;
+        if (Array.isArray(v)) return v.map(fmt).join('');
+        return esc(v);
+    }
+    function html(strings, ...vals) {
+        let out = strings[0];
+        vals.forEach((v, i) => { out += fmt(v) + strings[i + 1]; });
+        return new Safe(out);
+    }
+
+    const ICONS = {
+        back: '<path d="m15 18-6-6 6-6"/>',
+        right: '<path d="m9 18 6-6-6-6"/>',
+        down: '<path d="m6 9 6 6 6-6"/>',
+        sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+        moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+        flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+        repeat: '<path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>',
+        clipboard: '<rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/>',
+        archive: '<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/>',
+        copy: '<rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+        share: '<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4"/><path d="M12 2v13"/>',
+        edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+        trash: '<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+        printer: '<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/>',
+        search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+        clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+        check: '<path d="M20 6 9 17l-5-5"/>',
+        x: '<path d="M18 6 6 18M6 6l12 12"/>',
+        alert: '<path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>',
+        download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/>',
+        upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/>',
+        sliders: '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+        info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+        plus: '<path d="M12 5v14M5 12h14"/>'
+    };
+    const icon = name => raw(`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ''}</svg>`);
+
+    // ---------- Utilities ----------
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+    const str = v => (v == null ? '' : String(v));
+    const isObj = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+    const pad = n => String(n).padStart(2, '0');
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const DAYS_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const MONTHS_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    const todayISO = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const nowHM = (d = new Date()) => `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    function fmtDate(iso) {
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(str(iso));
+        if (!m) return str(iso);
+        const d = new Date(+m[1], +m[2] - 1, +m[3]);
+        return `${DAYS[d.getDay()]} ${+m[3]} ${MONTHS[+m[2] - 1]} ${m[1]}`;
+    }
+    function fmtStamp(ts) {
+        const d = new Date(ts);
+        if (isNaN(d)) return '';
+        return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${nowHM(d)}`;
+    }
+    function shortStamp(ts) {
+        const d = new Date(ts);
+        if (isNaN(d)) return '';
+        return todayISO(d) === todayISO() ? nowHM(d) : `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+    }
+    function toMinutes(t) {
+        const m = /^(\d{1,2}):(\d{2})/.exec(str(t));
+        if (!m || +m[1] > 23 || +m[2] > 59) return null;
+        return +m[1] * 60 + +m[2];
+    }
+    function duration(from, to) {
+        const a = toMinutes(from), b = toMinutes(to);
+        if (a == null || b == null) return null;
+        let mins = b - a;
+        const nextDay = mins < 0;
+        if (nextDay) mins += 1440;
+        const h = Math.floor(mins / 60), m = mins % 60;
+        return { mins, nextDay, text: h ? `${h}h ${pad(m)}m` : `${m} min` };
+    }
+    const labelOf = (opts, value) => (opts.find(o => o.value === value) || {}).label || '';
+    const checkKey = c => `check_${c.replace(/ /g, '_')}`;
+    const v = x => str(x).trim() || NE;
+    const titleCase = s => str(s).toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+
+    const store = {
+        get(key, fallback) {
+            try { const val = JSON.parse(localStorage.getItem(key)); return val == null ? fallback : val; }
+            catch { return fallback; }
+        },
+        set(key, val) {
+            try { localStorage.setItem(key, JSON.stringify(val)); return true; }
+            catch (err) { console.warn('StationBrain: could not save', key, err); return false; }
         }
+    };
 
-        const LOG_KEY = 'stationbrain_log';
+    function loadLog() {
+        const log = store.get(KEYS.log, []);
+        return Array.isArray(log) ? log.filter(e => isObj(e) && e.id != null) : [];
+    }
+    const saveLog = log => store.set(KEYS.log, log);
+    const findEntry = id => loadLog().find(e => String(e.id) === String(id)) || null;
+    function loadDrafts() { const d = store.get(KEYS.drafts, {}); return isObj(d) ? d : {}; }
+    const saveDrafts = d => store.set(KEYS.drafts, d);
 
-        function loadLog() {
-            try {
-                return JSON.parse(localStorage.getItem(LOG_KEY)) || [];
-            } catch {
-                return [];
-            }
-        }
+    let prefs = Object.assign({ theme: 'system', station: 'Port Antonio' }, (() => { const p = store.get(KEYS.prefs, {}); return isObj(p) ? p : {}; })());
+    const savePrefs = () => store.set(KEYS.prefs, prefs);
 
-        function saveLog(log) {
-            try {
-                localStorage.setItem(LOG_KEY, JSON.stringify(log));
-            } catch {
-                console.warn('Could not save log.');
-            }
-        }
+    // ---------- Form definitions ----------
+    const f = (id, label, type = 'text', extra = {}) => ({ id, label, type, ...extra });
 
-        function appendToLog(report, mode) {
-            const log = loadLog();
-            log.unshift({ id: Date.now(), mode, ...report });
-            saveLog(log);
-        }
-
-        function deleteLogEntry(id) {
-            if (!confirm("Delete this report from the log?")) return;
-            saveLog(loadLog().filter(r => r.id !== id));
-            renderLog(document.getElementById('appBody'));
-        }
-
-        function clearLog() {
-            if (!confirm("Clear ALL saved reports? This cannot be undone.")) return;
-            saveLog([]);
-            renderLog(document.getElementById('appBody'));
-        }
-
-        function toggleLogEntry(id) {
-            const body = document.getElementById(`log-body-${id}`);
-            const chev = document.getElementById(`log-chev-${id}`);
-            if (!body || !chev) return;
-            body.classList.toggle('open');
-            chev.classList.toggle('open');
-        }
-
-        async function copyLogReport(id) {
-            const entry = loadLog().find(r => r.id === id);
-            if (!entry) return;
-            const text = formatReportText({
-                mode: entry.mode,
-                timestamp: entry.timestamp || 'Not Entered',
-                admin: entry.admin || {},
-                narrative: entry.narrative || 'No notes recorded.',
-                checks: entry.checks || [],
-                classes: entry.classes || '',
-                activities: entry.activities || ''
-            });
-            try {
-                await navigator.clipboard.writeText(text);
-                alert("Report copied.");
-            } catch {
-                alert("Copy failed. Please copy manually.");
-            }
-        }
-
-        const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-        function updateTheme(isDark) {
-            state.theme = isDark ? 'dark' : 'light';
-            document.documentElement.className = state.theme;
-            document.body.className = state.theme;
-            const themeIcon = document.getElementById('themeIcon');
-            if (themeIcon) themeIcon.innerText = state.theme === 'light' ? '🌙' : '☀️';
-        }
-
-        updateTheme(darkQuery.matches);
-        if (typeof darkQuery.addEventListener === 'function') {
-            darkQuery.addEventListener('change', e => updateTheme(e.matches));
-        } else if (typeof darkQuery.addListener === 'function') {
-            darkQuery.addListener(e => updateTheme(e.matches));
-        }
-
-        function toggleThemeManual() {
-            updateTheme(state.theme !== 'dark');
-        }
-
-        function saveInputs() {
-            document.querySelectorAll('input, textarea, select').forEach(i => {
-                if (i.id) {
-                    state.formData[i.id.replace('f_', '')] = i.value;
+    const FORMS = {
+        incident: {
+            defaults: () => ({ dateCall: todayISO(), respondingStation: prefs.station || STATIONS[0] }),
+            required: ['incidentType', 'timeCall', 'respondingStation', 'loc'],
+            sections: [
+                { title: 'Classification', fields: [f('incidentType', 'Incident type', 'chips', { options: INCIDENT_TYPES, required: true })] },
+                {
+                    title: 'Crew', fields: [
+                        f('watch', 'Watch', 'seg', { options: WATCH_OPTS }),
+                        f('districtOfficer', 'District Officer', 'text', { placeholder: 'OIC', cap: 'words' }),
+                        [f('unit', 'Unit # / Appliance', 'text', { placeholder: 'e.g. Unit 12' }), f('menPresent', 'No. of Men', 'int')]
+                    ]
+                },
+                {
+                    title: 'Response', fields: [
+                        [f('dateCall', 'Date of Call', 'date'), f('timeCall', 'Time of Call', 'time', { required: true })],
+                        f('respondingStation', 'Responding Station', 'station', { required: true }),
+                        f('howCalled', 'How Called', 'seg', { options: [{ value: 'Telephone', label: 'Telephone' }, { value: 'Verbal', label: 'Verbal' }] }),
+                        [f('timeLeaving', 'Time Leaving', 'time'), f('timeReturn', 'Time Return', 'time')],
+                        f('outOfStation', '', 'duration')
+                    ]
+                },
+                {
+                    title: 'Location & Risk', fields: [
+                        f('loc', 'Address', 'text', { required: true, cap: 'words', placeholder: 'Street, district, parish' }),
+                        [f('typePremises', 'Type of Premises', 'text', { placeholder: 'e.g. Dwelling' }), f('distance', 'Distance (km)', 'decimal')],
+                        [f('estRisk', 'Est. Risk', 'text', { placeholder: 'J$' }), f('estLoss', 'Est. Loss', 'text', { placeholder: 'J$' })]
+                    ]
+                },
+                {
+                    title: 'Parties & Origin', fields: [
+                        f('owner', 'Owner Name', 'text', { cap: 'words' }),
+                        f('occupier', 'Occupier Name', 'text', { cap: 'words' }),
+                        f('supposedOrigin', 'Supposed Origin', 'text')
+                    ]
+                },
+                {
+                    title: 'House Fire Details', when: fd => fd.incidentType === 'house_fire', fields: [
+                        [f('occupants', 'No. of Occupants', 'int'), f('insured', 'Insured', 'seg', { options: YES_NO })]
+                    ]
+                },
+                {
+                    title: 'Vehicle Details', when: fd => VEHICLE_TYPES.includes(fd.incidentType), fields: [
+                        [f('licensePlate', 'License Plate', 'text', { cap: 'characters' }), f('vehicleCount', 'Vehicles Involved', 'int')]
+                    ]
+                },
+                { title: 'Operational Narrative', fields: [f('notes', 'Actions taken', 'textarea', { rows: 6, stamp: true, placeholder: 'Describe actions taken, in order…' })] }
+            ]
+        },
+        handover: {
+            defaults: () => ({ date: todayISO() }),
+            required: [],
+            sections: [
+                {
+                    title: 'Watch Details', fields: [
+                        f('date', 'Date', 'date'),
+                        f('watch', 'Outgoing Watch', 'seg', { options: WATCH_OPTS }),
+                        f('incomingWatch', 'Incoming Watch', 'seg', { options: WATCH_OPTS }),
+                        f('districtOfficer', 'District Officer', 'text', { placeholder: 'OIC', cap: 'words' })
+                    ]
+                },
+                { title: 'Station Checklist', fields: [f('checklist', '', 'checklist')] },
+                {
+                    title: 'Classes & Activities', fields: [
+                        f('classes', 'Classes Conducted', 'textarea', { rows: 3, placeholder: 'Drills, training sessions, EMS refreshers, inspections…' }),
+                        f('activities', 'Activities Completed', 'textarea', { rows: 3, placeholder: 'Station duties, maintenance, welfare checks, community activities…' })
+                    ]
+                },
+                { title: 'Outstanding Issues', fields: [f('issues', 'Defects & pending matters', 'textarea', { rows: 3, placeholder: 'Appliance defects, equipment out of service, matters for the incoming watch…' })] },
+                { title: 'Shift Summary', fields: [f('summary', 'Summary', 'textarea', { rows: 5, stamp: true, placeholder: 'Summary of the shift…' })] }
+            ]
+        },
+        debriefing: {
+            defaults: () => ({ date: todayISO() }),
+            required: [],
+            sections: [
+                {
+                    title: 'Details', fields: [
+                        [f('date', 'Date', 'date'), f('watch', 'Watch', 'seg', { options: WATCH_OPTS })],
+                        f('districtOfficer', 'District Officer', 'text', { placeholder: 'OIC', cap: 'words' }),
+                        f('relatedIncident', 'Related Incident', 'text', { placeholder: 'e.g. House fire, 12 King St' }),
+                        f('attendees', 'Attendees', 'textarea', { rows: 2, placeholder: 'Names / ranks present' })
+                    ]
+                },
+                {
+                    title: 'Review', fields: [
+                        f('notes', 'Debrief Notes', 'textarea', { rows: 6, stamp: true, placeholder: 'What happened, key decisions, timeline…' }),
+                        f('wentWell', 'What Went Well', 'textarea', { rows: 3 }),
+                        f('improve', 'Areas for Improvement', 'textarea', { rows: 3 }),
+                        f('actions', 'Action Items', 'textarea', { rows: 3, placeholder: 'Who does what, by when' })
+                    ]
                 }
-            });
+            ]
         }
+    };
 
-        function setView(v, mode = null) {
-            saveInputs();
-            state.view = v;
-            if (mode) state.mode = mode;
-            render();
+    const fieldLabel = (mode, id) => {
+        for (const s of FORMS[mode].sections) {
+            const fd = s.fields.flat().find(x => x.id === id);
+            if (fd && fd.label) return fd.label;
         }
+        return id;
+    };
 
-        function goHome() {
-            if ((state.view === 'input' || state.view === 'result' || state.view === 'log') &&
-                (Object.keys(state.formData).length > 0 || state.report)) {
-                if (!confirm("Return to menu? Current entries may be lost.")) return;
-            }
-            state.formData = { respondingStation: 'Port Antonio' };
-            state.report = null;
-            state.mode = null;
-            state.view = 'home';
-            render();
-        }
-
-        function clearCurrentForm() {
-            if (!confirm("Clear all entries?")) return;
-            state.formData = { respondingStation: 'Port Antonio' };
-            state.report = null;
-            if (state.view === 'result') {
-                state.view = 'input';
-            }
-            render();
-        }
-
-        function render() {
-            const body = document.getElementById('appBody');
-            const nav = document.getElementById('bottomNav');
-            const label = document.getElementById('viewLabel');
-            body.innerHTML = '';
-            nav.classList.add('hidden');
-            label.innerText = state.mode ? state.mode.toUpperCase() : 'JFB WORKSTATION';
-            if (state.view === 'home') {
-                renderHome(body);
-            } else if (state.view === 'log') {
-                renderLog(body);
-            } else if (state.view === 'input') {
-                nav.classList.remove('hidden');
-                renderInput(body);
-                document.getElementById('actionBtn').onclick = handleGenerate;
-                document.getElementById('actionBtn').innerText = 'Process Report';
-            } else if (state.view === 'result') {
-                nav.classList.remove('hidden');
-                renderResult(body);
-                document.getElementById('actionBtn').onclick = copyReport;
-                document.getElementById('actionBtn').innerText = 'Copy Full Report';
-            } else if (state.view === 'about' || state.view === 'disclaimer') {
-                renderTextPage(body, state.view);
-            }
-            window.scrollTo(0, 0);
-        }
-
-        function renderHome(container) {
-            const logCount = loadLog().length;
-            const menus = [
-                { id: 'incident', title: 'Incident Report', icon: '📄', desc: 'Narrative & Administration' },
-                { id: 'handover', title: 'Shift Handover', icon: '🔄', desc: 'Watch Accountability' },
-                { id: 'debriefing', title: 'Debriefing', icon: '📝', desc: 'Operational Review' }
+    // ---------- Report building ----------
+    function buildReport(mode, fd) {
+        const t = x => str(x).trim();
+        if (mode === 'incident') {
+            const typeLabel = labelOf(INCIDENT_TYPES, fd.incidentType) || NE;
+            const dur = duration(fd.timeLeaving, fd.timeReturn);
+            const distance = t(fd.distance).replace(/\s*km$/i, '');
+            const sections = [
+                {
+                    title: 'Administration', rows: [
+                        ['Classification', typeLabel.toUpperCase()],
+                        ['Watch', fd.watch ? `Watch ${fd.watch}` : NE],
+                        ['District Officer', v(fd.districtOfficer)],
+                        ['Unit # / Appliance', v(fd.unit)],
+                        ['No. of Men', v(fd.menPresent)]
+                    ]
+                },
+                {
+                    title: 'Response', rows: [
+                        ['Responding Station', v(fd.respondingStation)],
+                        ['Date of Call', fd.dateCall ? fmtDate(fd.dateCall) : NE],
+                        ['Time of Call', v(fd.timeCall)],
+                        ['How Called', v(fd.howCalled)],
+                        ['Time Leaving', v(fd.timeLeaving)],
+                        ['Time Return', fd.timeReturn ? fd.timeReturn + (dur && dur.nextDay ? ' (next day)' : '') : NE],
+                        ...(dur ? [['Time Out of Station', dur.text]] : [])
+                    ]
+                },
+                {
+                    title: 'Location & Risk', rows: [
+                        ['Address', v(fd.loc)],
+                        ['Type of Premises', v(fd.typePremises)],
+                        ['Distance', distance ? `${distance} km` : NE],
+                        ['Est. Risk', v(fd.estRisk)],
+                        ['Est. Loss', v(fd.estLoss)]
+                    ]
+                },
+                {
+                    title: 'Parties & Origin', rows: [
+                        ['Owner', v(fd.owner)],
+                        ['Occupier', v(fd.occupier)],
+                        ['Supposed Origin', v(fd.supposedOrigin)]
+                    ]
+                }
             ];
-            container.innerHTML = `<div class="grid gap-4 pt-2">
-                ${menus.map(m => `
-                    <button onclick="setView('input', '${m.id}')" class="card p-6 flex items-center gap-5 text-left border-2 border-transparent hover:border-blue-500 active:scale-95 shadow-sm">
-                        <span class="text-4xl">${m.icon}</span>
-                        <div>
-                            <h3 class="font-extrabold text-lg leading-tight text-slate-900 dark:text-white">${m.title}</h3>
-                            <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">${m.desc}</p>
-                        </div>
-                    </button>
-                `).join('')}
-                <button onclick="setView('log')" class="card p-6 flex items-center gap-5 text-left border-2 border-transparent hover:border-blue-500 active:scale-95 shadow-sm">
-                    <span class="text-4xl">🗂️</span>
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2">
-                            <h3 class="font-extrabold text-lg leading-tight text-slate-900 dark:text-white">Reports Log</h3>
-                            ${logCount > 0 ? `<span class="badge">${logCount}</span>` : ''}
-                        </div>
-                        <p class="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Saved Report History</p>
-                    </div>
-                </button>
-            </div>`;
-        }
-
-        function renderInput(container) {
-            const fd = state.formData;
-            const stationOptions = STATIONS.map(station => {
-                const selected = fd.respondingStation === station ? 'selected' : '';
-                return `<option value="${station}" ${selected}>${station}</option>`;
-            }).join('');
-
-            const commonHeader = `
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label>Watch</label>
-                        <select id="f_watch" onchange="saveInputs()">
-                            <option value="">Select</option>
-                            <option value="A" ${fd.watch === 'A' ? 'selected' : ''}>Watch A</option>
-                            <option value="B" ${fd.watch === 'B' ? 'selected' : ''}>Watch B</option>
-                            <option value="C" ${fd.watch === 'C' ? 'selected' : ''}>Watch C</option>
-                            <option value="D" ${fd.watch === 'D' ? 'selected' : ''}>Watch D</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label>District Officer</label>
-                        <input type="text" id="f_districtOfficer" placeholder="OIC" value="${fd.districtOfficer || ''}">
-                    </div>
-                </div>`;
-
-            if (state.mode === 'incident') {
-                container.innerHTML = `
-                <div class="space-y-6">
-                    ${commonHeader}
-                    <div>
-                        <label>Incident Classification</label>
-                        <select id="f_incidentType" onchange="saveInputs(); state.incidentType=this.value; render();">
-                            <option value="house_fire" ${state.incidentType === 'house_fire' ? 'selected' : ''}>House Fire</option>
-                            <option value="mv_fire" ${state.incidentType === 'mv_fire' ? 'selected' : ''}>Motor Vehicle Fire</option>
-                            <option value="bush_rubbish_electrical" ${state.incidentType === 'bush_rubbish_electrical' ? 'selected' : ''}>Bush / Rubbish / Electrical</option>
-                            <option value="mva" ${state.incidentType === 'mva' ? 'selected' : ''}>MVA</option>
-                            <option value="false_alarm" ${state.incidentType === 'false_alarm' ? 'selected' : ''}>False Alarm</option>
-                            <option value="special_service" ${state.incidentType === 'special_service' ? 'selected' : ''}>Special Service</option>
-                        </select>
-                    </div>
-                    <div class="card p-5 space-y-4 shadow-sm">
-                        <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest">Response Details</p>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label>Date of Call</label>
-                                <input type="date" id="f_dateCall" value="${fd.dateCall || ''}">
-                            </div>
-                            <div>
-                                <label>Time of Call</label>
-                                <input type="time" id="f_timeCall" value="${fd.timeCall || ''}">
-                            </div>
-                        </div>
-                        <div>
-                            <label>Responding Station</label>
-                            <select id="f_respondingStation" onchange="saveInputs()">${stationOptions}</select>
-                        </div>
-                        <div>
-                            <label>How Called</label>
-                            <select id="f_howCalled" onchange="saveInputs()">
-                                <option value="">Select</option>
-                                <option value="Telephone" ${fd.howCalled === 'Telephone' ? 'selected' : ''}>Telephone</option>
-                                <option value="Verbal" ${fd.howCalled === 'Verbal' ? 'selected' : ''}>Verbal</option>
-                            </select>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label>Time Leaving</label>
-                                <input type="time" id="f_timeLeaving" value="${fd.timeLeaving || ''}">
-                            </div>
-                            <div>
-                                <label>Time Return</label>
-                                <input type="time" id="f_timeReturn" value="${fd.timeReturn || ''}">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card p-5 space-y-4 shadow-sm">
-                        <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest">Location & Risk</p>
-                        <div>
-                            <label>Address</label>
-                            <input type="text" id="f_loc" value="${fd.loc || ''}">
-                        </div>
-                        <div>
-                            <label>Type of Premises</label>
-                            <input type="text" id="f_typePremises" value="${fd.typePremises || ''}">
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label>Distance (km)</label>
-                                <input type="text" id="f_distance" value="${fd.distance || ''}">
-                            </div>
-                            <div>
-                                <label>No. of Men</label>
-                                <input type="number" id="f_menPresent" value="${fd.menPresent || ''}">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label>Est Risk</label>
-                                <input type="text" id="f_estRisk" value="${fd.estRisk || ''}">
-                            </div>
-                            <div>
-                                <label>Est Loss</label>
-                                <input type="text" id="f_estLoss" value="${fd.estLoss || ''}">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card p-5 space-y-4 shadow-sm">
-                        <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest">Parties & Origin</p>
-                        <div>
-                            <label>Owner Name</label>
-                            <input type="text" id="f_owner" value="${fd.owner || ''}">
-                        </div>
-                        <div>
-                            <label>Occupier Name</label>
-                            <input type="text" id="f_occupier" value="${fd.occupier || ''}">
-                        </div>
-                        <div>
-                            <label>Supposed Origin</label>
-                            <input type="text" id="f_supposedOrigin" value="${fd.supposedOrigin || ''}">
-                        </div>
-                    </div>
-                    ${state.incidentType === 'house_fire' ? `
-                    <div class="card p-5 space-y-4 shadow-sm">
-                        <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest">House Fire Details</p>
-                        <div>
-                            <label>Number of Occupants</label>
-                            <input type="number" min="0" id="f_occupants" value="${fd.occupants || ''}">
-                        </div>
-                        <div>
-                            <label>Insured</label>
-                            <select id="f_insured" onchange="saveInputs()">
-                                <option value="">Select</option>
-                                <option value="yes" ${fd.insured === 'yes' ? 'selected' : ''}>Yes</option>
-                                <option value="no" ${fd.insured === 'no' ? 'selected' : ''}>No</option>
-                            </select>
-                        </div>
-                    </div>` : ''}
-                    ${(state.incidentType === 'mv_fire' || state.incidentType === 'mva') ? `
-                    <div class="card p-5 space-y-4 shadow-sm">
-                        <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest">Vehicle Details</p>
-                        <div>
-                            <label>License Plate Number</label>
-                            <input type="text" id="f_licensePlate" value="${fd.licensePlate || ''}">
-                        </div>
-                        <div>
-                            <label>Number of Vehicles Involved</label>
-                            <input type="number" min="0" id="f_vehicleCount" value="${fd.vehicleCount || ''}">
-                        </div>
-                    </div>` : ''}
-                    <div class="space-y-4">
-                        <div>
-                            <label>Unit# / Apparatus</label>
-                            <input type="text" id="f_unit" placeholder="unit#" value="${fd.unit || ''}">
-                        </div>
-                        <div>
-                            <label>Operational Narrative</label>
-                            <textarea id="f_notes" rows="6" placeholder="Describe actions taken here...">${fd.notes || ''}</textarea>
-                        </div>
-                    </div>
-                </div>`;
-            } else if (state.mode === 'handover') {
-                container.innerHTML = `<div class="space-y-6">${commonHeader}<div class="card p-5 space-y-3 shadow-sm">
-                    <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest mb-2">Checklist</p>
-                    ${CHECKS.map(c => {
-                        const key = `check_${c.replace(/ /g, '_')}`;
-                        const saved = fd[key] || 'not_stated';
-                        return `<div class="flex justify-between items-center text-sm border-b pb-2 dark:border-slate-700">
-                            <span>${c}</span>
-                            <select class="sh-check w-20 font-bold text-blue-600 bg-transparent" id="f_${key}" onchange="saveInputs()" data-label="${c}">
-                                <option value="not_stated" ${saved === 'not_stated' ? 'selected' : ''}>?</option>
-                                <option value="yes" ${saved === 'yes' ? 'selected' : ''}>YES</option>
-                                <option value="no" ${saved === 'no' ? 'selected' : ''}>NO</option>
-                            </select>
-                        </div>`;
-                    }).join('')}
-                </div>
-                <div class="card p-5 space-y-4 shadow-sm">
-                    <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest">Classes & Activities</p>
-                    <div>
-                        <label>Classes Conducted</label>
-                        <textarea id="f_classes" rows="4" placeholder="List drills, training sessions, EMS refreshers, inspections, or other classes conducted during the shift...">${fd.classes || ''}</textarea>
-                    </div>
-                    <div>
-                        <label>Activities Completed</label>
-                        <textarea id="f_activities" rows="4" placeholder="List station duties, maintenance, welfare checks, community activities, special assignments, or other notable activities...">${fd.activities || ''}</textarea>
-                    </div>
-                </div>
-                <div><label>Shift Summary</label><textarea id="f_summary" rows="6" placeholder="Shift summary...">${fd.summary || ''}</textarea></div></div>`;
-            } else {
-                container.innerHTML = `<div class="space-y-4">${commonHeader}<div><label>Debrief Notes</label><textarea id="f_notes" rows="12" placeholder="Review points...">${fd.notes || ''}</textarea></div></div>`;
+            if (fd.incidentType === 'house_fire') {
+                sections.push({ title: 'House Fire Details', rows: [['No. of Occupants', v(fd.occupants)], ['Insured', labelOf(YES_NO, fd.insured) || NE]] });
             }
-        }
-
-        async function handleGenerate() {
-            saveInputs();
-            if (!state.mode) {
-                alert("Please choose a report type first.");
-                return;
+            if (VEHICLE_TYPES.includes(fd.incidentType)) {
+                sections.push({ title: 'Vehicle Details', rows: [['License Plate', v(fd.licensePlate)], ['Vehicles Involved', v(fd.vehicleCount)]] });
             }
-            if (state.mode === 'incident') {
-                if (!state.formData.loc) return alert("Location is required.");
-                if (!state.formData.timeCall) return alert("Time of call is required.");
-                if (!state.formData.respondingStation) return alert("Responding station is required.");
+            sections.push({ title: 'Narrative', text: t(fd.notes) || 'No notes recorded.' });
+            return { title: typeLabel, subtitle: [t(fd.loc), t(fd.respondingStation)].filter(Boolean).join(' · '), sections };
+        }
+        if (mode === 'handover') {
+            const watchLine = fd.watch ? `Watch ${fd.watch}${fd.incomingWatch ? ` → Watch ${fd.incomingWatch}` : ''}` : '';
+            return {
+                title: 'Shift Handover',
+                subtitle: [watchLine, fd.date ? fmtDate(fd.date) : ''].filter(Boolean).join(' · '),
+                sections: [
+                    {
+                        title: 'Administration', rows: [
+                            ['Date', fd.date ? fmtDate(fd.date) : NE],
+                            ['Outgoing Watch', fd.watch ? `Watch ${fd.watch}` : NE],
+                            ['Incoming Watch', fd.incomingWatch ? `Watch ${fd.incomingWatch}` : NE],
+                            ['District Officer', v(fd.districtOfficer)]
+                        ]
+                    },
+                    { title: 'Station Checklist', checks: CHECKS.map(c => ({ label: c, status: ['yes', 'no'].includes(fd[checkKey(c)]) ? fd[checkKey(c)] : 'unset' })) },
+                    {
+                        title: 'Classes & Activities', blocks: [
+                            { label: 'Classes Conducted', text: t(fd.classes) || 'None recorded' },
+                            { label: 'Activities Completed', text: t(fd.activities) || 'None recorded' }
+                        ]
+                    },
+                    { title: 'Outstanding Issues & Defects', text: t(fd.issues) || 'None recorded' },
+                    { title: 'Shift Summary', text: t(fd.summary) || 'No notes recorded.' }
+                ]
+            };
+        }
+        const sections = [
+            {
+                title: 'Administration', rows: [
+                    ['Date', fd.date ? fmtDate(fd.date) : NE],
+                    ['Watch', fd.watch ? `Watch ${fd.watch}` : NE],
+                    ['District Officer', v(fd.districtOfficer)],
+                    ['Related Incident', v(fd.relatedIncident)]
+                ]
             }
-            const body = document.getElementById('appBody');
-            body.innerHTML = `<div class="flex flex-col items-center py-20 gap-4"><div class="spinner"></div><p class="text-xs font-black uppercase tracking-widest text-slate-400 text-center">Processing operational data...</p></div>`;
-            setTimeout(() => {
-                const d = state.formData;
-                const r = {
-                    narrative: d.notes || d.summary || "No notes recorded.",
-                    admin: {},
-                    checks: [],
-                    classes: d.classes || '',
-                    activities: d.activities || '',
-                    timestamp: new Date().toLocaleString('en-JM', { dateStyle: 'medium', timeStyle: 'short' })
-                };
-                if (state.mode === 'incident') {
-                    r.admin = {
-                        "Classification": state.incidentType.replace(/_/g, ' ').toUpperCase(),
-                        "Watch": d.watch || "Not Entered",
-                        "DO": d.districtOfficer || "Not Entered",
-                        "Station": d.respondingStation || "Not Entered",
-                        "Date of Call": d.dateCall || "Not Entered",
-                        "Time of Call": d.timeCall || "Not Entered",
-                        "How Called": d.howCalled || "Not Entered",
-                        "Time Leaving": d.timeLeaving || "Not Entered",
-                        "Time Return": d.timeReturn || "Not Entered",
-                        "Location": d.loc || "Not Entered",
-                        "Type of Premises": d.typePremises || "Not Entered",
-                        "Distance": d.distance ? d.distance + ' km' : "Not Entered",
-                        "No. of Men": d.menPresent || "Not Entered",
-                        "Est Risk": d.estRisk || "Not Entered",
-                        "Est Loss": d.estLoss || "Not Entered",
-                        "Owner": d.owner || "Not Entered",
-                        "Occupier": d.occupier || "Not Entered",
-                        "Origin": d.supposedOrigin || "Not Entered",
-                        ...(state.incidentType === 'house_fire' ? {
-                            "Number of Occupants": d.occupants || "Not Entered",
-                            "Insured": d.insured ? (d.insured === 'yes' ? 'Yes' : 'No') : "Not Entered"
-                        } : {}),
-                        ...((state.incidentType === 'mv_fire' || state.incidentType === 'mva') ? {
-                            "License Plate Number": d.licensePlate || "Not Entered",
-                            "No. of Vehicles Involved": d.vehicleCount || "Not Entered"
-                        } : {}),
-                        "Unit#": d.unit || "Not Entered"
-                    };
-                } else if (state.mode === 'handover') {
-                    CHECKS.forEach(c => {
-                        const key = `check_${c.replace(/ /g, '_')}`;
-                        const val = d[key];
-                        r.checks.push({
-                            label: c,
-                            status: val === 'yes' ? '✅ DONE' : (val === 'no' ? '❌ NO' : '⚠️ ?')
-                        });
-                    });
-                    r.admin = {
-                        "Watch": d.watch || "Not Entered",
-                        "District Officer": d.districtOfficer || "Not Entered"
-                    };
-                } else {
-                    r.admin = {
-                        "Watch": d.watch || "Not Entered",
-                        "District Officer": d.districtOfficer || "Not Entered"
-                    };
-                }
-                state.report = r;
-                appendToLog(r, state.mode);
-                state.view = 'result';
-                render();
-            }, 600);
-        }
+        ];
+        if (t(fd.attendees)) sections.push({ title: 'Attendees', text: t(fd.attendees) });
+        sections.push({ title: 'Debrief Notes', text: t(fd.notes) || 'No notes recorded.' });
+        if (t(fd.wentWell)) sections.push({ title: 'What Went Well', text: t(fd.wentWell) });
+        if (t(fd.improve)) sections.push({ title: 'Areas for Improvement', text: t(fd.improve) });
+        if (t(fd.actions)) sections.push({ title: 'Action Items', text: t(fd.actions) });
+        return {
+            title: 'Debriefing',
+            subtitle: [t(fd.relatedIncident), fd.date ? fmtDate(fd.date) : ''].filter(Boolean).join(' · '),
+            sections
+        };
+    }
 
-        function renderResult(container) {
-            const r = state.report || { narrative: 'No report available.', admin: {}, checks: [], classes: '', activities: '' };
-            const classesActivitiesBlock = (r.classes || r.activities)
-                ? `<div class="card p-5 space-y-3 shadow-sm">
-                    <label>Classes & Activities</label>
-                    <div class="space-y-2">
-                        <div class="border-b pb-2 dark:border-slate-700">
-                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Classes Conducted</p>
-                            <p class="text-sm leading-relaxed whitespace-pre-wrap text-slate-900 dark:text-slate-100 font-medium">${r.classes || 'Not Entered'}</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Activities Completed</p>
-                            <p class="text-sm leading-relaxed whitespace-pre-wrap text-slate-900 dark:text-slate-100 font-medium">${r.activities || 'Not Entered'}</p>
-                        </div>
-                    </div>
-                </div>` : '';
-            container.innerHTML = `
-                <div class="space-y-4 pb-8 animate-in fade-in duration-300">
-                    <div class="card p-6 report-accent shadow-sm">
-                        <label>Narrative</label>
-                        <p class="text-sm leading-relaxed whitespace-pre-wrap text-slate-900 dark:text-slate-100 font-medium">${r.narrative}</p>
-                    </div>
-                    <div class="card p-5 space-y-2 shadow-sm">
-                        <label>Administration</label>
-                        ${Object.entries(r.admin).map(([k, v]) => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${k}</span><span class="font-bold text-right ml-4">${v}</span></div>`).join('')}
-                    </div>
-                    ${r.checks.length ? `<div class="card p-5 space-y-2 shadow-sm"><label>Checks Summary</label>${r.checks.map(c => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${c.label}</span><span class="font-bold">${c.status}</span></div>`).join('')}</div>` : ''}
-                    ${classesActivitiesBlock}
-                    <button onclick="state.view='input';render();" class="btn btn-secondary w-full">Edit Details</button>
-                </div>`;
+    // Converts any stored entry (including pre-2.2 log entries) into the current shape.
+    function normalizeEntry(e) {
+        const mode = MODES[e.mode] ? e.mode : 'incident';
+        const createdAt = Number(e.createdAt) || Number(e.id) || Date.now();
+        const base = {
+            id: e.id,
+            mode,
+            createdAt,
+            updatedAt: Number(e.updatedAt) || null,
+            timestamp: str(e.timestamp) || fmtStamp(createdAt),
+            form: isObj(e.form) ? e.form : null
+        };
+        if (Array.isArray(e.sections)) {
+            return {
+                ...base,
+                title: str(e.title) || MODES[mode].title,
+                subtitle: str(e.subtitle),
+                sections: e.sections.filter(isObj).map(s => ({
+                    title: str(s.title),
+                    rows: Array.isArray(s.rows) ? s.rows.filter(Array.isArray).map(r => [str(r[0]), str(r[1])]) : null,
+                    checks: Array.isArray(s.checks) ? s.checks.filter(isObj).map(c => ({ label: str(c.label), status: ['yes', 'no'].includes(c.status) ? c.status : 'unset' })) : null,
+                    text: s.text == null ? null : str(s.text),
+                    blocks: Array.isArray(s.blocks) ? s.blocks.filter(isObj).map(b => ({ label: str(b.label), text: str(b.text) })) : null
+                }))
+            };
         }
-
-        function renderLog(container) {
-            document.getElementById('viewLabel').innerText = 'REPORTS LOG';
-            const log = loadLog();
-            const modeIcon = { incident: '📄', handover: '🔄', debriefing: '📝' };
-            const modeLabel = { incident: 'Incident Report', handover: 'Shift Handover', debriefing: 'Debriefing' };
-            if (log.length === 0) {
-                container.innerHTML = `
-                    <div class="flex flex-col items-center py-20 gap-4 text-center">
-                        <span class="text-5xl">🗂️</span>
-                        <p class="font-black text-slate-400 uppercase tracking-widest text-xs">No saved reports yet</p>
-                        <p class="text-xs text-slate-400">Reports are saved automatically each time you process one.</p>
-                        <button onclick="goHome()" class="btn btn-secondary mt-4">Back to Menu</button>
-                    </div>`;
-                return;
-            }
-            container.innerHTML = `
-                <div class="space-y-3 pb-8">
-                    <div class="flex justify-between items-center px-1">
-                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">${log.length} report${log.length !== 1 ? 's' : ''} saved</p>
-                        <button onclick="clearLog()" class="btn-ghost-red text-[10px]">Clear All</button>
-                    </div>
-                    ${log.map(entry => {
-                        const icon = modeIcon[entry.mode] || '📄';
-                        const label = modeLabel[entry.mode] || String(entry.mode || '').toUpperCase();
-                        const preview = entry.admin && entry.admin['Location'] && entry.admin['Location'] !== 'Not Entered'
-                            ? entry.admin['Location']
-                            : (entry.admin && entry.admin['Watch'] && entry.admin['Watch'] !== 'Not Entered'
-                                ? 'Watch ' + entry.admin['Watch']
-                                : 'No location');
-                        const checksHtml = entry.checks && entry.checks.length
-                            ? `<div class="mt-3 pt-3 border-t dark:border-slate-700 space-y-1">
-                                <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest mb-2">Checks</p>
-                                ${entry.checks.map(c => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${c.label}</span><span class="font-bold">${c.status}</span></div>`).join('')}
-                               </div>`
-                            : '';
-                        const classesActivitiesHtml = (entry.classes || entry.activities)
-                            ? `<div class="mt-3 pt-3 border-t dark:border-slate-700 space-y-3">
-                                <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest mb-2">Classes & Activities</p>
-                                <div>
-                                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Classes Conducted</p>
-                                    <p class="text-xs leading-relaxed whitespace-pre-wrap text-slate-700 dark:text-slate-300 font-medium">${entry.classes || 'Not Entered'}</p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Activities Completed</p>
-                                    <p class="text-xs leading-relaxed whitespace-pre-wrap text-slate-700 dark:text-slate-300 font-medium">${entry.activities || 'Not Entered'}</p>
-                                </div>
-                               </div>`
-                            : '';
-                        return `
-                        <div class="card shadow-sm overflow-hidden">
-                            <button onclick="toggleLogEntry(${entry.id})" class="w-full p-4 flex items-center gap-4 text-left">
-                                <span class="text-2xl flex-shrink-0">${icon}</span>
-                                <div class="flex-1 min-w-0">
-                                    <p class="font-extrabold text-sm text-slate-900 dark:text-white truncate">${label}</p>
-                                    <p class="text-[10px] text-slate-400 font-semibold truncate">${preview}</p>
-                                    <p class="text-[9px] text-slate-300 dark:text-slate-600 font-bold uppercase tracking-widest mt-0.5">${entry.timestamp || ''}</p>
-                                </div>
-                                <span id="log-chev-${entry.id}" class="log-chevron text-slate-400 font-black text-sm flex-shrink-0">▼</span>
-                            </button>
-                            <div id="log-body-${entry.id}" class="log-body">
-                                <div class="px-4 pb-4 space-y-3 border-t dark:border-slate-700 pt-3">
-                                    <div class="space-y-1">
-                                        <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest mb-2">Administration</p>
-                                        ${Object.entries(entry.admin || {}).map(([k, v]) => `<div class="flex justify-between text-xs border-b pb-1 dark:border-slate-700"><span>${k}</span><span class="font-bold text-right ml-4">${v}</span></div>`).join('')}
-                                    </div>
-                                    <div class="pt-2 border-t dark:border-slate-700">
-                                        <p class="text-[10px] font-black uppercase text-blue-600 dark:text-blue-400 tracking-widest mb-2">Narrative</p>
-                                        <p class="text-xs leading-relaxed whitespace-pre-wrap text-slate-700 dark:text-slate-300 font-medium">${entry.narrative || 'No notes recorded.'}</p>
-                                    </div>
-                                    ${checksHtml}
-                                    ${classesActivitiesHtml}
-                                    <div class="flex gap-2 pt-2">
-                                        <button onclick="copyLogReport(${entry.id})" class="btn btn-primary flex-1 text-[11px] py-2.5">Copy Report</button>
-                                        <button onclick="deleteLogEntry(${entry.id})" class="btn btn-secondary text-[11px] py-2.5 px-4" style="color:var(--accent-red);border-color:var(--accent-red);">Delete</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>`;
-                    }).join('')}
-                    <button onclick="goHome()" class="btn btn-secondary w-full mt-2">Back to Menu</button>
-                </div>`;
-        }
-
-        function renderTextPage(container, type) {
-            const h = type === 'about' ? 'About StationBrain' : 'Legal Disclaimer';
-            const p = type === 'about'
-                ? `StationBrain is a station-level decision-support and record-keeping tool created for use within the Jamaica Fire Brigade. It is designed to help on-duty crews organize station information, track routine activities, and generate clear, consistent reports that support smoother handovers and better situational awareness during a shift.<br><br>The app pulls together information that would normally live in paper logs, notebooks, or on the whiteboard and structures it in one place for easier review. StationBrain is intended to complement, not replace, the Brigade's official procedures, command structure, or mandated documentation. All operational decisions must continue to follow official JFB policies, orders, and the established chain of command.<br><br>StationBrain is currently used on a personal basis at a single station and is developed from a frontline firefighter's perspective with a focus on practicality, speed under pressure, and clarity of records rather than complex automation.`
-                : `1. General information only<br>StationBrain provides tools, logs, and reports for general information and record-keeping purposes at the station level. It does not provide professional, legal, medical, or safety-critical advice and must not be treated as the final authority for any operational, tactical, or staffing decision.<br><br>2. Not an official Jamaica Fire Brigade system<br>StationBrain is a personal tool used within the Jamaica Fire Brigade and is not an official, authorized, or mandated JFB system. It does not replace any official Brigade systems, forms, reports, or documentation and must not be used where the Brigade requires specific official records or platforms. In any conflict between StationBrain and official JFB policies, the official policies and orders always prevail.<br><br>3. No emergency or incident command function<br>StationBrain is not an emergency notification system, incident command platform, or life-safety device. It must never be relied on as the sole source for incident information, crew status, resource availability, or tactical decisions. Users must always follow official radio procedures, command decisions, and safety protocols.<br><br>4. No professional, medical, or legal advice<br>Nothing in StationBrain, including any data, analytics, guidance, or generated reports, is intended to constitute medical advice, legal advice, or any other kind of professional advice. Users must rely on their training, supervisors, and qualified professionals when making decisions that could affect health, safety, employment, or legal rights.`;
-            container.innerHTML = `<div class="card p-6 space-y-4 shadow-sm"><h2 class="font-extrabold text-xl text-slate-900 dark:text-white">${h}</h2><div class="text-sm leading-relaxed text-slate-700 dark:text-slate-300">${p}</div><button onclick="goHome()" class="btn btn-secondary w-full mt-4">Back to Menu</button></div>`;
-        }
-
-        async function copyReport() {
-            if (!state.report) return;
-            const text = formatReportText({
-                mode: state.mode,
-                timestamp: state.report.timestamp,
-                admin: state.report.admin,
-                narrative: state.report.narrative,
-                checks: state.report.checks,
-                classes: state.report.classes,
-                activities: state.report.activities
+        // Legacy (v2.1 and earlier): { admin, narrative, checks, classes, activities }
+        const admin = isObj(e.admin) ? e.admin : {};
+        const sections = [{ title: 'Administration', rows: Object.entries(admin).map(([k, val]) => [str(k), str(val)]) }];
+        sections.push({ title: 'Narrative', text: str(e.narrative) || 'No notes recorded.' });
+        if (Array.isArray(e.checks) && e.checks.length) {
+            sections.push({
+                title: 'Checks', checks: e.checks.filter(isObj).map(c => {
+                    const s = str(c.status).toUpperCase();
+                    return { label: str(c.label), status: s.includes('DONE') ? 'yes' : (/\bNO\b/.test(s) ? 'no' : 'unset') };
+                })
             });
-            try {
-                await navigator.clipboard.writeText(text);
-                alert('Full report copied.');
-            } catch {
-                alert('Copy failed. Please copy manually.');
-            }
         }
+        if (e.classes || e.activities) {
+            sections.push({ title: 'Classes & Activities', blocks: [{ label: 'Classes Conducted', text: str(e.classes) || NE }, { label: 'Activities Completed', text: str(e.activities) || NE }] });
+        }
+        const has = k => admin[k] && admin[k] !== NE;
+        let title = MODES[mode].title, subtitle = '';
+        if (mode === 'incident') {
+            title = has('Classification') ? titleCase(admin.Classification).replace(/\bMva\b/, 'MVA') : title;
+            subtitle = [has('Location') ? admin.Location : '', has('Station') ? admin.Station : ''].filter(Boolean).join(' · ');
+        } else if (has('Watch')) {
+            subtitle = `Watch ${admin.Watch}`;
+        }
+        return { ...base, title, subtitle, sections };
+    }
 
+    function reportText(entry) {
+        const e = normalizeEntry(entry);
+        const rule = '-'.repeat(40);
+        const lines = ['STATIONBRAIN REPORT', rule, `REPORT TYPE: ${MODES[e.mode].title.toUpperCase()}`, `GENERATED: ${e.timestamp}`];
+        if (e.updatedAt) lines.push(`UPDATED: ${fmtStamp(e.updatedAt)}`);
+        e.sections.forEach(s => {
+            lines.push('', s.title.toUpperCase(), rule);
+            (s.rows || []).forEach(([k, val]) => lines.push(`${k}: ${val}`));
+            (s.checks || []).forEach(c => lines.push(`${c.label}: ${STATUS_TEXT[c.status]}`));
+            if (s.text != null) lines.push(s.text);
+            (s.blocks || []).forEach((b, i) => {
+                if (i) lines.push('');
+                lines.push(`${b.label}:`, b.text);
+            });
+        });
+        return lines.join('\n');
+    }
+
+    // ---------- App state & navigation ----------
+    const state = {
+        view: 'home',
+        params: {},
+        mode: null,
+        form: {},
+        editingId: null,
+        logQuery: '',
+        logFilter: 'all',
+        skipMissing: false
+    };
+
+    const validState = s => isObj(s) && typeof s.view === 'string';
+
+    function navigate(view, params = {}, { replace = false } = {}) {
+        const cur = validState(history.state) ? history.state : { depth: 0 };
+        const next = { view, params, depth: replace ? (cur.depth || 0) : (cur.depth || 0) + 1 };
+        if (replace) history.replaceState(next, ''); else history.pushState(next, '');
+        show(next);
+    }
+
+    function goHome() {
+        const depth = validState(history.state) ? history.state.depth || 0 : 0;
+        if (depth > 0) history.go(-depth);
+        else navigate('home', {}, { replace: true });
+    }
+
+    function goBack() {
+        const depth = validState(history.state) ? history.state.depth || 0 : 0;
+        if (depth > 0) history.back();
+        else navigate('home', {}, { replace: true });
+    }
+
+    function show(s) {
+        saveDraftNow();
+        state.view = s.view;
+        state.params = s.params || {};
+        if (state.view === 'form') {
+            if (!MODES[state.params.mode]) { state.view = 'home'; }
+            else enterForm(state.params.mode);
+        } else {
+            state.mode = null;
+        }
+        if (state.view === 'report' && !findEntry(state.params.id) && state.skipMissing) {
+            history.back();
+            return;
+        }
+        state.skipMissing = false;
         render();
+    }
 
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('StationBrain SW registered:', reg.scope))
-                    .catch(err => console.warn('SW registration failed:', err));
-            });
+    window.addEventListener('popstate', e => show(validState(e.state) ? e.state : { view: 'home', params: {}, depth: 0 }));
+
+    // ---------- Drafts ----------
+    function compact(o) {
+        return JSON.stringify(Object.keys(o || {}).sort()
+            .filter(k => o[k] !== '' && o[k] != null && o[k] !== 'not_stated')
+            .map(k => [k, o[k]]));
+    }
+
+    function enterForm(mode) {
+        const d = loadDrafts()[mode];
+        state.mode = mode;
+        state.form = d && isObj(d.form) ? { ...d.form } : FORMS[mode].defaults();
+        state.editingId = d && d.editingId != null && findEntry(d.editingId) ? d.editingId : null;
+    }
+
+    function isMeaningful() {
+        if (state.editingId != null) {
+            const e = findEntry(state.editingId);
+            return !e || compact(e.form) !== compact(state.form);
         }
+        return compact(state.form) !== compact(FORMS[state.mode].defaults());
+    }
+
+    let draftTimer = null;
+    function scheduleDraftSave() {
+        clearTimeout(draftTimer);
+        draftTimer = setTimeout(saveDraftNow, 350);
+    }
+
+    function saveDraftNow() {
+        clearTimeout(draftTimer);
+        draftTimer = null;
+        if (state.view !== 'form' || !state.mode) return false;
+        const drafts = loadDrafts();
+        const meaningful = isMeaningful();
+        if (meaningful) drafts[state.mode] = { form: state.form, editingId: state.editingId, savedAt: Date.now() };
+        else delete drafts[state.mode];
+        const ok = saveDrafts(drafts);
+        if (meaningful && ok) flashSaved();
+        return meaningful && ok;
+    }
+
+    let savedTimer = null;
+    function flashSaved() {
+        const el = $('#saveState');
+        el.innerHTML = html`${icon('check')}Saved`.s;
+        el.classList.add('show');
+        clearTimeout(savedTimer);
+        savedTimer = setTimeout(() => el.classList.remove('show'), 1600);
+    }
+
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveDraftNow(); });
+    window.addEventListener('pagehide', saveDraftNow);
+
+    // ---------- Theme ----------
+    const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const resolvedTheme = () => prefs.theme === 'dark' || (prefs.theme !== 'light' && darkQuery.matches) ? 'dark' : 'light';
+    function applyTheme() {
+        const theme = resolvedTheme();
+        document.documentElement.setAttribute('data-theme', theme);
+        $('#metaTheme').setAttribute('content', theme === 'dark' ? '#0b1120' : '#f1f5f9');
+        const btn = $('#themeBtn');
+        btn.innerHTML = icon(theme === 'dark' ? 'sun' : 'moon').s;
+        btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+        $$('[data-action="set-theme"]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.value === prefs.theme)));
+    }
+    const onSchemeChange = () => { if (prefs.theme === 'system') applyTheme(); };
+    if (darkQuery.addEventListener) darkQuery.addEventListener('change', onSchemeChange);
+    else if (darkQuery.addListener) darkQuery.addListener(onSchemeChange);
+
+    // ---------- Toast & dialog ----------
+    let toastTimer = null;
+    function toast(message, { action = null, error = false, duration: ms } = {}) {
+        const el = $('#toast');
+        el.className = 'toast' + (error ? ' error' : '');
+        el.innerHTML = html`<span>${message}</span>${action ? html`<button class="toast-action" type="button">${action.label}</button>` : ''}`.s;
+        if (action) el.querySelector('button').onclick = () => { hideToast(); action.fn(); };
+        requestAnimationFrame(() => el.classList.add('show'));
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(hideToast, ms || (action ? 6000 : 2800));
+    }
+    function hideToast() { $('#toast').classList.remove('show'); }
+
+    function confirmDialog({ title, message, confirmLabel = 'Confirm', danger = false }) {
+        const dlg = $('#dialog');
+        if (dlg.open) return Promise.resolve(false);
+        if (typeof dlg.showModal !== 'function') return Promise.resolve(window.confirm(`${title}\n\n${message}`));
+        $('#dialogTitle').textContent = title;
+        $('#dialogMsg').textContent = message;
+        const ok = $('#dialogOk');
+        ok.textContent = confirmLabel;
+        ok.className = `btn ${danger ? 'btn-danger' : 'btn-primary'}`;
+        dlg.returnValue = '';
+        return new Promise(resolve => {
+            dlg.addEventListener('close', () => resolve(dlg.returnValue === 'ok'), { once: true });
+            dlg.showModal();
+            $('#dialogCancel').focus();
+        });
+    }
+
+    // ---------- Rendering ----------
+    function render() {
+        const views = { home: viewHome, form: viewForm, report: viewReport, log: viewLog, settings: viewSettings, about: () => viewPage('about'), legal: () => viewPage('legal') };
+        const out = (views[state.view] || viewHome)();
+        const isHome = state.view === 'home';
+        $('#viewTitle').textContent = out.title;
+        $('#viewSubtitle').textContent = out.subtitle || '';
+        $('#backBtn').hidden = isHome;
+        $('#backBtn').innerHTML = icon('back').s;
+        $('#brandIcon').hidden = !isHome;
+        if (state.view !== 'form') $('#saveState').classList.remove('show');
+        $('#app').innerHTML = out.body.s;
+        const bar = $('#actionBar');
+        bar.hidden = !out.actions;
+        bar.innerHTML = out.actions ? out.actions.s : '';
+        document.body.classList.toggle('has-actions', !!out.actions);
+        document.title = isHome ? 'StationBrain | JFB Operational Workstation' : `${out.title} · StationBrain`;
+        applyTheme();
+        if (out.after) out.after();
+        window.scrollTo(0, 0);
+    }
+
+    function viewHome() {
+        const drafts = loadDrafts();
+        const log = loadLog();
+        const last = log.length ? normalizeEntry(log[0]) : null;
+        const now = new Date();
+        const modeCard = (id, m) => {
+            const d = isObj(drafts[id]) ? drafts[id] : null;
+            const pill = d ? html`<span class="pill ${d.editingId != null ? 'pill-blue' : ''}">${d.editingId != null ? 'Editing' : 'Draft'} · ${shortStamp(d.savedAt)}</span>` : '';
+            return html`
+                <button class="card nav-card" data-action="open-mode" data-mode="${id}">
+                    <span class="tile tile-${id}">${icon(m.icon)}</span>
+                    <span class="nav-text">
+                        <span class="nav-title">${m.title}${pill}</span>
+                        <span class="nav-desc">${d ? 'Tap to continue where you left off' : m.desc}</span>
+                    </span>
+                    ${icon('right')}
+                </button>`;
+        };
+        return {
+            title: 'StationBrain',
+            subtitle: 'JFB Workstation',
+            body: html`
+                <div class="stack">
+                    <div class="hero">
+                        <p class="eyebrow">${DAYS_LONG[now.getDay()]}, ${now.getDate()} ${MONTHS_LONG[now.getMonth()]}</p>
+                        <h2 class="hero-title">Start a report</h2>
+                    </div>
+                    <div class="stack-sm">${Object.entries(MODES).map(([id, m]) => modeCard(id, m))}</div>
+                    <button class="card nav-card" data-action="nav" data-view="log">
+                        <span class="tile tile-log">${icon('archive')}</span>
+                        <span class="nav-text">
+                            <span class="nav-title">Reports Log${log.length ? html`<span class="count">${log.length}</span>` : ''}</span>
+                            <span class="nav-desc">${last ? `Last: ${last.title} · ${shortStamp(last.updatedAt || last.createdAt)}` : 'Saved report history'}</span>
+                        </span>
+                        ${icon('right')}
+                    </button>
+                    <nav class="footer-links" aria-label="More">
+                        <button class="btn" data-action="nav" data-view="settings">Settings</button>
+                        <button class="btn" data-action="nav" data-view="about">About</button>
+                        <button class="btn" data-action="nav" data-view="legal">Legal</button>
+                    </nav>
+                    <p class="version">StationBrain v${APP_VERSION} · Works offline · Data stays on this device</p>
+                </div>`
+        };
+    }
+
+    // ----- Form -----
+    function fieldControl(fd) {
+        const id = fd.id;
+        const val = str(state.form[id]);
+        switch (fd.type) {
+            case 'textarea':
+                return html`<textarea class="input" id="f_${id}" data-field="${id}" rows="${fd.rows || 4}" placeholder="${fd.placeholder || ''}" autocapitalize="sentences" data-autogrow>${val}</textarea>`;
+            case 'station': {
+                const opts = STATIONS.includes(val) || !val ? STATIONS : [val, ...STATIONS];
+                return html`<select class="input" id="f_${id}" data-field="${id}">${val ? '' : html`<option value="">Select station</option>`}${opts.map(s => html`<option value="${s}" ${s === val ? raw('selected') : ''}>${s}</option>`)}</select>`;
+            }
+            case 'seg':
+            case 'chips':
+                return html`<div class="${fd.type}" role="group" aria-labelledby="lbl_${id}" id="f_${id}">${fd.options.map(o => html`<button type="button" data-action="seg" data-field="${id}" data-value="${o.value}" aria-pressed="${String(val === o.value)}">${o.label}</button>`)}</div>`;
+            case 'date':
+            case 'time':
+                return html`<input class="input" type="${fd.type}" id="f_${id}" data-field="${id}" value="${val}">`;
+            case 'int':
+                return html`<input class="input" type="text" inputmode="numeric" pattern="[0-9]*" id="f_${id}" data-field="${id}" data-sanitize="int" value="${val}" placeholder="${fd.placeholder || ''}" enterkeyhint="next">`;
+            case 'decimal':
+                return html`<input class="input" type="text" inputmode="decimal" id="f_${id}" data-field="${id}" data-sanitize="decimal" value="${val}" placeholder="${fd.placeholder || ''}" enterkeyhint="next">`;
+            default:
+                return html`<input class="input" type="text" id="f_${id}" data-field="${id}" value="${val}" placeholder="${fd.placeholder || ''}" autocapitalize="${fd.cap || 'sentences'}" autocorrect="off" spellcheck="false" enterkeyhint="next">`;
+        }
+    }
+
+    function renderField(fd) {
+        if (Array.isArray(fd)) return html`<div class="row">${fd.map(renderField)}</div>`;
+        if (fd.type === 'checklist') return renderChecklist();
+        if (fd.type === 'duration') return html`<p class="hint" data-duration hidden></p>`;
+        const isGroup = fd.type === 'seg' || fd.type === 'chips';
+        const labelInner = html`${fd.label}${fd.required ? html`<span class="req" aria-hidden="true"> *</span>` : ''}`;
+        const label = isGroup
+            ? html`<span class="label" id="lbl_${fd.id}">${labelInner}</span>`
+            : html`<label class="label" id="lbl_${fd.id}" for="f_${fd.id}">${labelInner}</label>`;
+        const extra = fd.type === 'time'
+            ? html`<button type="button" class="mini-btn" data-action="now" data-field="${fd.id}" aria-label="Set ${fd.label} to current time">Now</button>`
+            : fd.stamp ? html`<button type="button" class="mini-btn" data-action="stamp" data-field="${fd.id}">${icon('clock')}Insert time</button>` : '';
+        return html`
+            <div class="field" data-wrap="${fd.id}">
+                <div class="label-row">${label}${extra}</div>
+                ${fieldControl(fd)}
+                <p class="field-error" id="err_${fd.id}">${fd.label} is required</p>
+            </div>`;
+    }
+
+    function renderChecklist() {
+        return html`
+            <div class="field">
+                <div class="checklist-head">
+                    <span class="label" data-check-progress></span>
+                    <button type="button" class="mini-btn" data-action="check-all">${icon('check')}Mark all Yes</button>
+                </div>
+                <div class="progress" aria-hidden="true"><span data-check-bar></span></div>
+                <div>${CHECKS.map(c => {
+                    const key = checkKey(c);
+                    const val = state.form[key];
+                    return html`
+                        <div class="check-row">
+                            <span class="check-label" id="lbl_${key}">${c}</span>
+                            <div class="seg seg-sm" role="group" aria-labelledby="lbl_${key}">
+                                ${YES_NO.map(o => html`<button type="button" class="opt-${o.value}" data-action="seg" data-field="${key}" data-value="${o.value}" aria-pressed="${String(val === o.value)}">${o.label}</button>`)}
+                            </div>
+                        </div>`;
+                })}</div>
+            </div>`;
+    }
+
+    function viewForm() {
+        const def = FORMS[state.mode];
+        const m = MODES[state.mode];
+        const found = state.editingId != null ? findEntry(state.editingId) : null;
+        const editing = found ? normalizeEntry(found) : null;
+        return {
+            title: m.title,
+            subtitle: editing ? `Editing report from ${editing.timestamp}` : 'New report',
+            body: html`
+                <form class="stack" id="reportForm" novalidate autocomplete="off">
+                    ${editing ? html`
+                        <div class="banner">
+                            ${icon('edit')}
+                            <div class="banner-text"><strong>Editing a saved report</strong><p>Updating will replace the saved version in the log.</p></div>
+                            <button type="button" class="mini-btn" data-action="discard-edit">Discard</button>
+                        </div>` : ''}
+                    ${def.sections.map((s, i) => html`
+                        <section class="card form-section" data-section="${i}" ${s.when && !s.when(state.form) ? raw('hidden') : ''}>
+                            <h2 class="section-title">${s.title}</h2>
+                            ${s.fields.map(renderField)}
+                        </section>`)}
+                    <button type="button" class="btn btn-ghost-danger" data-action="clear-form">${icon('trash')}Clear form</button>
+                </form>`,
+            actions: html`
+                <button class="btn btn-secondary" data-action="home">Menu</button>
+                <button class="btn btn-primary btn-grow" data-action="generate">${editing ? 'Update Report' : 'Generate Report'}</button>`,
+            after() {
+                $$('[data-autogrow]').forEach(autogrow);
+                updateComputed();
+            }
+        };
+    }
+
+    function autogrow(el) {
+        el.style.height = 'auto';
+        el.style.height = `${el.scrollHeight + 2}px`;
+    }
+
+    function updateConditionals() {
+        FORMS[state.mode].sections.forEach((s, i) => {
+            if (!s.when) return;
+            const el = $(`[data-section="${i}"]`);
+            if (el) el.hidden = !s.when(state.form);
+        });
+    }
+
+    function updateComputed() {
+        const hint = $('[data-duration]');
+        if (hint) {
+            const dur = duration(state.form.timeLeaving, state.form.timeReturn);
+            hint.hidden = !dur;
+            if (dur) hint.innerHTML = html`${icon('clock')}<span>Out of station: ${dur.text}${dur.nextDay ? ' (returned next day)' : ''}</span>`.s;
+        }
+        const progress = $('[data-check-progress]');
+        if (progress) {
+            const done = CHECKS.filter(c => state.form[checkKey(c)] === 'yes').length;
+            const answered = CHECKS.filter(c => ['yes', 'no'].includes(state.form[checkKey(c)])).length;
+            progress.textContent = `${done} of ${CHECKS.length} done${answered > done ? ` · ${answered - done} marked No` : ''}`;
+            $('[data-check-bar]').style.width = `${(done / CHECKS.length) * 100}%`;
+        }
+    }
+
+    function setFieldError(field, on) {
+        const wrap = $(`[data-wrap="${field}"]`);
+        if (!wrap) return;
+        wrap.classList.toggle('invalid', on);
+        const ctrl = $(`#f_${field}`);
+        if (ctrl) {
+            if (on) { ctrl.setAttribute('aria-invalid', 'true'); ctrl.setAttribute('aria-describedby', `err_${field}`); }
+            else { ctrl.removeAttribute('aria-invalid'); ctrl.removeAttribute('aria-describedby'); }
+        }
+    }
+
+    function onFieldChanged(field) {
+        setFieldError(field, false);
+        if (field === 'incidentType') updateConditionals();
+        updateComputed();
+        scheduleDraftSave();
+    }
+
+    function onFieldInput(e) {
+        const el = e.target;
+        const field = el.dataset && el.dataset.field;
+        if (!field || state.view !== 'form') return;
+        if (el.dataset.sanitize) {
+            const clean = el.dataset.sanitize === 'int' ? el.value.replace(/\D/g, '') : el.value.replace(/[^\d.]/g, '').replace(/(\..*)\./g, '$1');
+            if (clean !== el.value) el.value = clean;
+        }
+        state.form[field] = el.value;
+        if (el.hasAttribute('data-autogrow')) autogrow(el);
+        onFieldChanged(field);
+    }
+    $('#app').addEventListener('input', onFieldInput);
+    $('#app').addEventListener('change', onFieldInput);
+    $('#app').addEventListener('submit', e => e.preventDefault());
+
+    function onSeg(btn) {
+        const { field, value } = btn.dataset;
+        const next = state.form[field] === value ? '' : value;
+        state.form[field] = next;
+        btn.parentElement.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.value === next)));
+        onFieldChanged(field);
+    }
+
+    function setInputValue(field, value) {
+        const el = $(`#f_${field}`);
+        if (!el) return;
+        el.value = value;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function insertStamp(field) {
+        const el = $(`#f_${field}`);
+        if (!el) return;
+        const start = el.selectionStart ?? el.value.length;
+        const end = el.selectionEnd ?? el.value.length;
+        const before = el.value.slice(0, start);
+        const prefix = before && !before.endsWith('\n') ? '\n' : '';
+        const text = `${prefix}[${nowHM()}] `;
+        el.setRangeText(text, start, end, 'end');
+        el.focus();
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function validate() {
+        return (FORMS[state.mode].required || []).filter(k => !str(state.form[k]).trim());
+    }
+
+    let persistRequested = false;
+    function requestPersistentStorage() {
+        if (persistRequested || !navigator.storage || !navigator.storage.persist) return;
+        persistRequested = true;
+        navigator.storage.persist().catch(() => {});
+    }
+
+    function generate() {
+        const missing = validate();
+        if (missing.length) {
+            missing.forEach(k => setFieldError(k, true));
+            const first = $(`[data-wrap="${missing[0]}"]`);
+            if (first) {
+                first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                const group = $(`#f_${missing[0]}`);
+                const ctrl = group && group.matches('input, select, textarea') ? group : group && group.querySelector('button');
+                if (ctrl) setTimeout(() => ctrl.focus({ preventScroll: true }), 300);
+            }
+            toast(`Required: ${missing.map(k => fieldLabel(state.mode, k)).join(', ')}`, { error: true });
+            return;
+        }
+        const report = buildReport(state.mode, state.form);
+        const log = loadLog();
+        const now = Date.now();
+        const idx = state.editingId != null ? log.findIndex(e => String(e.id) === String(state.editingId)) : -1;
+        let entry;
+        if (idx >= 0) {
+            const prev = log[idx];
+            entry = { ...prev, v: 2, ...report, form: { ...state.form }, createdAt: Number(prev.createdAt) || Number(prev.id) || now, updatedAt: now };
+            ['admin', 'narrative', 'checks', 'classes', 'activities'].forEach(k => delete entry[k]);
+            log[idx] = entry;
+        } else {
+            let id = now;
+            while (log.some(e => e.id === id)) id++;
+            entry = { id, v: 2, mode: state.mode, createdAt: now, timestamp: fmtStamp(now), ...report, form: { ...state.form } };
+            log.unshift(entry);
+        }
+        if (!saveLog(log)) {
+            toast('Could not save — device storage is full. Export a backup and delete old reports.', { error: true, duration: 6000 });
+            return;
+        }
+        const drafts = loadDrafts();
+        delete drafts[state.mode];
+        saveDrafts(drafts);
+        state.mode = null;
+        requestPersistentStorage();
+        navigate('report', { id: entry.id }, { replace: true });
+        toast(idx >= 0 ? 'Report updated' : 'Report saved to log');
+    }
+
+    // ----- Report -----
+    const isEmptyVal = val => EMPTY_VALUES.has(val);
+
+    function renderSection(s) {
+        const doneCount = s.checks ? s.checks.filter(c => c.status === 'yes').length : 0;
+        return html`
+            <section class="card report-section">
+                <div class="section-head">
+                    <h3 class="section-title">${s.title}</h3>
+                    ${s.checks && s.checks.length ? html`<span class="pill ${doneCount === s.checks.length ? 'pill-green' : ''}">${doneCount}/${s.checks.length} done</span>` : ''}
+                </div>
+                ${s.rows && s.rows.length ? html`<dl class="kv">${s.rows.map(([k, val]) => html`<dt>${k}</dt><dd class="${isEmptyVal(val) ? 'empty' : ''}">${val}</dd>`)}</dl>` : ''}
+                ${s.checks && s.checks.length ? html`<ul class="checks">${s.checks.map(c => html`
+                    <li><span>${c.label}</span><span class="status status-${c.status}">${c.status === 'yes' ? icon('check') : c.status === 'no' ? icon('x') : ''}${STATUS_LABEL[c.status]}</span></li>`)}</ul>` : ''}
+                ${s.text != null ? html`<p class="prose ${isEmptyVal(s.text) ? 'empty' : ''}">${s.text}</p>` : ''}
+                ${s.blocks ? s.blocks.map(b => html`<div class="block"><p class="block-label">${b.label}</p><p class="prose ${isEmptyVal(b.text) ? 'empty' : ''}">${b.text}</p></div>`) : ''}
+            </section>`;
+    }
+
+    function viewReport() {
+        const found = findEntry(state.params.id);
+        if (!found) {
+            return {
+                title: 'Report',
+                subtitle: 'Not found',
+                body: html`
+                    <div class="empty-state">
+                        <span class="tile tile-log">${icon('archive')}</span>
+                        <p class="empty-title">Report not found</p>
+                        <p class="empty-text">It may have been deleted.</p>
+                        <button class="btn btn-secondary" data-action="nav" data-view="log">Open Reports Log</button>
+                    </div>`
+            };
+        }
+        const e = normalizeEntry(found);
+        const m = MODES[e.mode];
+        const draft = loadDrafts()[e.mode];
+        const hasPendingEdits = draft && String(draft.editingId) === String(e.id);
+        const canShare = typeof navigator.share === 'function';
+        return {
+            title: m.title,
+            subtitle: e.updatedAt ? `Updated ${fmtStamp(e.updatedAt)}` : `Saved ${e.timestamp}`,
+            body: html`
+                <article class="stack" id="report">
+                    <header class="card report-head">
+                        <div class="report-kicker"><span class="tile tile-sm tile-${e.mode}">${icon(m.icon)}</span>${m.title}</div>
+                        <h2 class="report-title">${e.title}</h2>
+                        ${e.subtitle ? html`<p class="report-sub">${e.subtitle}</p>` : ''}
+                        <p class="report-meta">${icon('clock')}<span>Generated ${e.timestamp}${e.updatedAt ? ` · Updated ${fmtStamp(e.updatedAt)}` : ''}</span></p>
+                    </header>
+                    ${hasPendingEdits ? html`
+                        <div class="banner no-print">
+                            ${icon('edit')}
+                            <div class="banner-text"><strong>Unsaved edits</strong><p>You started editing this report but haven't updated it yet.</p></div>
+                            <button type="button" class="mini-btn" data-action="edit-report" data-id="${e.id}">Continue</button>
+                        </div>` : ''}
+                    ${e.sections.map(renderSection)}
+                    <details class="card plain no-print" id="plainText">
+                        <summary>Plain-text version${icon('down')}</summary>
+                        <pre>${reportText(found)}</pre>
+                    </details>
+                    <div class="row no-print">
+                        <button class="btn btn-secondary" data-action="print-report">${icon('printer')}Print / PDF</button>
+                        <button class="btn btn-secondary btn-danger-outline" data-action="delete-report" data-id="${e.id}">${icon('trash')}Delete</button>
+                    </div>
+                </article>`,
+            actions: html`
+                ${e.form ? html`<button class="btn btn-secondary" data-action="edit-report" data-id="${e.id}">${icon('edit')}Edit</button>` : ''}
+                <button class="btn ${canShare ? 'btn-secondary' : 'btn-primary btn-grow'}" data-action="copy-report" data-id="${e.id}">${icon('copy')}Copy</button>
+                ${canShare ? html`<button class="btn btn-primary btn-grow" data-action="share-report" data-id="${e.id}">${icon('share')}Share</button>` : ''}`
+        };
+    }
+
+    async function copyText(text) {
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+                return true;
+            }
+        } catch { /* fall through to legacy copy */ }
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+        document.body.appendChild(ta);
+        ta.select();
+        ta.setSelectionRange(0, text.length);
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch { ok = false; }
+        ta.remove();
+        return ok;
+    }
+
+    async function copyReport(id) {
+        const entry = findEntry(id);
+        if (!entry) return;
+        if (await copyText(reportText(entry))) {
+            toast('Report copied to clipboard');
+        } else {
+            const details = $('#plainText');
+            if (details) { details.open = true; details.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+            toast('Copy blocked — select the plain-text version and copy it manually', { error: true, duration: 5000 });
+        }
+    }
+
+    async function shareReport(id) {
+        const entry = findEntry(id);
+        if (!entry) return;
+        const e = normalizeEntry(entry);
+        try {
+            await navigator.share({ title: `${MODES[e.mode].title}: ${e.title}`, text: reportText(entry) });
+        } catch (err) {
+            if (err && err.name === 'AbortError') return;
+            copyReport(id);
+        }
+    }
+
+    async function editReport(id) {
+        const entry = findEntry(id);
+        if (!entry || !isObj(entry.form)) return;
+        const drafts = loadDrafts();
+        const existing = drafts[entry.mode];
+        const sameEdit = existing && String(existing.editingId) === String(entry.id);
+        if (existing && !sameEdit) {
+            const ok = await confirmDialog({
+                title: 'Replace unsaved draft?',
+                message: `You have an unfinished ${MODES[entry.mode].title.toLowerCase()} draft. Editing this report will replace it.`,
+                confirmLabel: 'Replace draft',
+                danger: true
+            });
+            if (!ok) return;
+        }
+        if (!sameEdit) {
+            drafts[entry.mode] = { form: { ...entry.form }, editingId: entry.id, savedAt: Date.now() };
+            saveDrafts(drafts);
+        }
+        navigate('form', { mode: entry.mode });
+    }
+
+    function deleteReport(id) {
+        const log = loadLog();
+        const idx = log.findIndex(e => String(e.id) === String(id));
+        if (idx < 0) return;
+        const [removed] = log.splice(idx, 1);
+        saveLog(log);
+        const drafts = loadDrafts();
+        const editDraft = drafts[removed.mode];
+        if (editDraft && String(editDraft.editingId) === String(id)) { delete drafts[removed.mode]; saveDrafts(drafts); }
+        const undo = () => {
+            const cur = loadLog();
+            if (cur.some(e => String(e.id) === String(removed.id))) return;
+            cur.splice(Math.min(idx, cur.length), 0, removed);
+            saveLog(cur);
+            if (editDraft && String(editDraft.editingId) === String(id)) {
+                const d = loadDrafts();
+                if (!d[removed.mode]) { d[removed.mode] = editDraft; saveDrafts(d); }
+            }
+            if (state.view === 'log' || state.view === 'home') render();
+            toast('Report restored');
+        };
+        if (state.view === 'report') {
+            state.skipMissing = true;
+            goBack();
+        } else {
+            render();
+        }
+        toast('Report deleted', { action: { label: 'Undo', fn: undo } });
+    }
+
+    // ----- Log -----
+    function filteredLog() {
+        const q = state.logQuery.trim().toLowerCase();
+        return loadLog()
+            .map(raw0 => ({ raw0, e: normalizeEntry(raw0) }))
+            .filter(({ e }) => state.logFilter === 'all' || e.mode === state.logFilter)
+            .filter(({ raw0 }) => !q || reportText(raw0).toLowerCase().includes(q))
+            .map(({ e }) => e)
+            .sort((a, b) => b.createdAt - a.createdAt);
+    }
+
+    function dayLabel(ts) {
+        const d = new Date(ts);
+        const today = todayISO();
+        const y = new Date(); y.setDate(y.getDate() - 1);
+        if (todayISO(d) === today) return 'Today';
+        if (todayISO(d) === todayISO(y)) return 'Yesterday';
+        return fmtDate(todayISO(d));
+    }
+
+    function renderLogList() {
+        const entries = filteredLog();
+        if (!entries.length) {
+            return html`
+                <div class="empty-state">
+                    <span class="tile tile-log">${icon('search')}</span>
+                    <p class="empty-title">No matching reports</p>
+                    <p class="empty-text">Try a different search or filter.</p>
+                </div>`;
+        }
+        let lastDay = null;
+        return html`${entries.map(e => {
+            const day = dayLabel(e.createdAt);
+            const heading = day !== lastDay ? html`<p class="day-label">${day}</p>` : '';
+            lastDay = day;
+            return html`${heading}
+                <button class="card list-item" data-action="nav" data-view="report" data-id="${e.id}">
+                    <span class="tile tile-md tile-${e.mode}">${icon(MODES[e.mode].icon)}</span>
+                    <span class="item-text">
+                        <span class="item-title">${e.title}</span>
+                        <span class="item-sub">${e.subtitle || MODES[e.mode].title}</span>
+                    </span>
+                    <span class="item-time">${nowHM(new Date(e.createdAt))}${e.updatedAt ? html`<span class="pill pill-blue">Edited</span>` : ''}</span>
+                </button>`;
+        })}`;
+    }
+
+    function viewLog() {
+        const log = loadLog();
+        if (!log.length) {
+            return {
+                title: 'Reports Log',
+                subtitle: 'No saved reports',
+                body: html`
+                    <div class="empty-state">
+                        <span class="tile tile-log">${icon('archive')}</span>
+                        <p class="empty-title">No saved reports yet</p>
+                        <p class="empty-text">Every report you generate is saved here automatically, on this device.</p>
+                        <button class="btn btn-primary" data-action="home">Start a report</button>
+                        <button class="btn btn-ghost" data-action="nav" data-view="settings">${icon('upload')}Restore from backup</button>
+                    </div>`
+            };
+        }
+        const counts = { all: log.length };
+        log.forEach(e => { const mode = MODES[e.mode] ? e.mode : 'incident'; counts[mode] = (counts[mode] || 0) + 1; });
+        const filters = [['all', 'All'], ...Object.entries(MODES).map(([id, m]) => [id, m.short])];
+        return {
+            title: 'Reports Log',
+            subtitle: `${log.length} report${log.length === 1 ? '' : 's'} saved on this device`,
+            body: html`
+                <div class="stack-sm">
+                    <div class="search">
+                        ${icon('search')}
+                        <input class="input" type="search" id="logSearch" placeholder="Search address, watch, notes…" value="${state.logQuery}" aria-label="Search reports" autocomplete="off">
+                    </div>
+                    <div class="filters" role="group" aria-label="Filter by type">
+                        ${filters.map(([id, label]) => html`<button class="filter" data-action="log-filter" data-filter="${id}" aria-pressed="${String(state.logFilter === id)}">${label} · ${counts[id] || 0}</button>`)}
+                    </div>
+                    <div class="stack-sm" id="logList">${renderLogList()}</div>
+                </div>`
+        };
+    }
+
+    // ----- Settings -----
+    function viewSettings() {
+        const logRaw = localStorage.getItem(KEYS.log) || '';
+        const count = loadLog().length;
+        const kb = Math.max(0, Math.round(new Blob([logRaw]).size / 1024));
+        return {
+            title: 'Settings',
+            subtitle: 'Preferences & data',
+            body: html`
+                <div class="stack">
+                    <section class="card settings-group">
+                        <h2 class="section-title">Appearance</h2>
+                        <div class="seg" role="group" aria-label="Theme">
+                            ${[['system', 'System'], ['light', 'Light'], ['dark', 'Dark']].map(([val, label]) => html`<button type="button" data-action="set-theme" data-value="${val}" aria-pressed="${String(prefs.theme === val)}">${label}</button>`)}
+                        </div>
+                    </section>
+                    <section class="card settings-group">
+                        <h2 class="section-title">Defaults</h2>
+                        <div class="field">
+                            <label class="label" for="prefStation">Home station</label>
+                            <select class="input" id="prefStation">${STATIONS.map(s => html`<option value="${s}" ${s === prefs.station ? raw('selected') : ''}>${s}</option>`)}</select>
+                            <p class="help">Pre-selected as the responding station on new incident reports.</p>
+                        </div>
+                    </section>
+                    <section class="card settings-group">
+                        <h2 class="section-title">Data</h2>
+                        <div>
+                            <p class="settings-label">${count} report${count === 1 ? '' : 's'} stored · ${kb} KB</p>
+                            <p class="settings-desc">Reports live only in this browser. Export a backup regularly — clearing browser data or changing phones will erase them.</p>
+                        </div>
+                        <div class="row">
+                            <button class="btn btn-secondary" data-action="export">${icon('download')}Export</button>
+                            <button class="btn btn-secondary" data-action="import">${icon('upload')}Import</button>
+                        </div>
+                        <button class="btn btn-secondary btn-danger-outline" data-action="clear-log" ${count ? '' : raw('disabled')}>${icon('trash')}Delete all reports</button>
+                    </section>
+                    <p class="version">StationBrain v${APP_VERSION}</p>
+                </div>`
+        };
+    }
+
+    function exportBackup() {
+        const log = loadLog();
+        if (!log.length) { toast('No reports to export'); return; }
+        const data = JSON.stringify({ app: 'StationBrain', version: APP_VERSION, exportedAt: new Date().toISOString(), reports: log }, null, 2);
+        const url = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `stationbrain-backup-${todayISO()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        toast(`Exported ${log.length} report${log.length === 1 ? '' : 's'}`);
+    }
+
+    async function importBackup(file) {
+        let data;
+        try { data = JSON.parse(await file.text()); }
+        catch { toast('That file is not a valid StationBrain backup', { error: true }); return; }
+        const incoming = Array.isArray(data) ? data : (isObj(data) && Array.isArray(data.reports) ? data.reports : null);
+        if (!incoming) { toast('No reports found in that file', { error: true }); return; }
+        const valid = incoming.filter(e => isObj(e) && e.id != null && MODES[e.mode]);
+        const log = loadLog();
+        const ids = new Set(log.map(e => String(e.id)));
+        const added = valid.filter(e => !ids.has(String(e.id)));
+        const merged = [...log, ...added].sort((a, b) => (Number(b.createdAt) || Number(b.id) || 0) - (Number(a.createdAt) || Number(a.id) || 0));
+        if (!saveLog(merged)) { toast('Import failed — device storage is full', { error: true }); return; }
+        render();
+        const skipped = incoming.length - added.length;
+        toast(`Imported ${added.length} report${added.length === 1 ? '' : 's'}${skipped ? ` · ${skipped} skipped (duplicate or invalid)` : ''}`);
+    }
+
+    async function clearAllReports() {
+        const count = loadLog().length;
+        const ok = await confirmDialog({
+            title: 'Delete all reports?',
+            message: `This permanently removes ${count} saved report${count === 1 ? '' : 's'} from this device. Export a backup first if you might need them.`,
+            confirmLabel: 'Delete all',
+            danger: true
+        });
+        if (!ok) return;
+        saveLog([]);
+        const drafts = loadDrafts();
+        Object.values(drafts).forEach(d => { if (isObj(d)) d.editingId = null; });
+        saveDrafts(drafts);
+        render();
+        toast('All reports deleted');
+    }
+
+    // ----- Static pages -----
+    function viewPage(type) {
+        if (type === 'about') {
+            return {
+                title: 'About',
+                subtitle: 'StationBrain',
+                body: html`
+                    <article class="card page">
+                        <h2>About StationBrain</h2>
+                        <p>StationBrain is a station-level decision-support and record-keeping tool created for use within the Jamaica Fire Brigade. It is designed to help on-duty crews organize station information, track routine activities, and generate clear, consistent reports that support smoother handovers and better situational awareness during a shift.</p>
+                        <p>The app pulls together information that would normally live in paper logs, notebooks, or on the whiteboard and structures it in one place for easier review. StationBrain is intended to complement, not replace, the Brigade's official procedures, command structure, or mandated documentation. All operational decisions must continue to follow official JFB policies, orders, and the established chain of command.</p>
+                        <p>StationBrain is currently used on a personal basis at a single station and is developed from a frontline firefighter's perspective with a focus on practicality, speed under pressure, and clarity of records rather than complex automation.</p>
+                        <h3>Your data</h3>
+                        <p>Everything you enter stays in this browser on this device. Nothing is uploaded. Drafts save automatically as you type, and you can export a backup from Settings.</p>
+                    </article>`
+            };
+        }
+        return {
+            title: 'Legal',
+            subtitle: 'Disclaimer',
+            body: html`
+                <article class="card page">
+                    <h2>Legal Disclaimer</h2>
+                    <h3>1. General information only</h3>
+                    <p>StationBrain provides tools, logs, and reports for general information and record-keeping purposes at the station level. It does not provide professional, legal, medical, or safety-critical advice and must not be treated as the final authority for any operational, tactical, or staffing decision.</p>
+                    <h3>2. Not an official Jamaica Fire Brigade system</h3>
+                    <p>StationBrain is a personal tool used within the Jamaica Fire Brigade and is not an official, authorized, or mandated JFB system. It does not replace any official Brigade systems, forms, reports, or documentation and must not be used where the Brigade requires specific official records or platforms. In any conflict between StationBrain and official JFB policies, the official policies and orders always prevail.</p>
+                    <h3>3. No emergency or incident command function</h3>
+                    <p>StationBrain is not an emergency notification system, incident command platform, or life-safety device. It must never be relied on as the sole source for incident information, crew status, resource availability, or tactical decisions. Users must always follow official radio procedures, command decisions, and safety protocols.</p>
+                    <h3>4. No professional, medical, or legal advice</h3>
+                    <p>Nothing in StationBrain, including any data, analytics, guidance, or generated reports, is intended to constitute medical advice, legal advice, or any other kind of professional advice. Users must rely on their training, supervisors, and qualified professionals when making decisions that could affect health, safety, employment, or legal rights.</p>
+                </article>`
+        };
+    }
+
+    // ---------- Actions ----------
+    const ACTIONS = {
+        'back': () => goBack(),
+        'home': () => {
+            const hadDraft = state.view === 'form' && saveDraftNow();
+            goHome();
+            if (hadDraft) toast('Draft saved — tap the card to continue');
+        },
+        'nav': el => navigate(el.dataset.view, el.dataset.id != null ? { id: el.dataset.id } : {}),
+        'open-mode': el => navigate('form', { mode: el.dataset.mode }),
+        'toggle-theme': () => { prefs.theme = resolvedTheme() === 'dark' ? 'light' : 'dark'; savePrefs(); applyTheme(); },
+        'set-theme': el => { prefs.theme = el.dataset.value; savePrefs(); applyTheme(); },
+        'seg': el => onSeg(el),
+        'now': el => setInputValue(el.dataset.field, nowHM()),
+        'stamp': el => insertStamp(el.dataset.field),
+        'check-all': () => {
+            CHECKS.forEach(c => { state.form[checkKey(c)] = 'yes'; });
+            $$('.check-row [data-action="seg"]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.value === 'yes')));
+            updateComputed();
+            scheduleDraftSave();
+        },
+        'generate': () => generate(),
+        'clear-form': async () => {
+            const ok = await confirmDialog({ title: 'Clear this form?', message: 'All entries on this form will be erased. Saved reports in the log are not affected.', confirmLabel: 'Clear form', danger: true });
+            if (!ok) return;
+            state.form = FORMS[state.mode].defaults();
+            state.editingId = null;
+            saveDraftNow();
+            render();
+            toast('Form cleared');
+        },
+        'discard-edit': async () => {
+            const id = state.editingId;
+            const ok = await confirmDialog({ title: 'Discard changes?', message: 'Your edits will be thrown away. The saved report stays as it was.', confirmLabel: 'Discard', danger: true });
+            if (!ok) return;
+            const drafts = loadDrafts();
+            delete drafts[state.mode];
+            saveDrafts(drafts);
+            state.mode = null;
+            navigate('report', { id }, { replace: true });
+        },
+        'copy-report': el => copyReport(el.dataset.id),
+        'share-report': el => shareReport(el.dataset.id),
+        'edit-report': el => editReport(el.dataset.id),
+        'print-report': () => window.print(),
+        'delete-report': el => deleteReport(el.dataset.id),
+        'log-filter': el => {
+            state.logFilter = el.dataset.filter;
+            $$('[data-action="log-filter"]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.filter === state.logFilter)));
+            $('#logList').innerHTML = renderLogList().s;
+        },
+        'export': () => exportBackup(),
+        'import': () => $('#importFile').click(),
+        'clear-log': () => clearAllReports()
+    };
+
+    document.addEventListener('click', e => {
+        const el = e.target.closest('[data-action]');
+        if (!el || el.disabled) return;
+        const fn = ACTIONS[el.dataset.action];
+        if (fn) { e.preventDefault(); fn(el, e); }
+    });
+
+    document.addEventListener('input', e => {
+        if (e.target.id === 'logSearch') {
+            state.logQuery = e.target.value;
+            $('#logList').innerHTML = renderLogList().s;
+        }
+    });
+
+    document.addEventListener('change', e => {
+        if (e.target.id === 'prefStation') { prefs.station = e.target.value; savePrefs(); toast('Home station updated'); }
+        if (e.target.id === 'importFile' && e.target.files[0]) {
+            importBackup(e.target.files[0]).finally(() => { e.target.value = ''; });
+        }
+    });
+
+    // ---------- Boot ----------
+    (function boot() {
+        const initial = validState(history.state) ? history.state : { view: 'home', params: {}, depth: 0 };
+        history.replaceState(initial, '');
+        show(initial);
+    })();
+
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW registration failed:', err));
+        });
+    }
     </script>
 </body>
 </html>
