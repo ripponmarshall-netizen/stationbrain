@@ -2,7 +2,7 @@
 
 Station-level reporting tool for Jamaica Fire Brigade crews: **incident reports**, **shift handovers** and **debriefings**, formatted consistently and ready to copy, share (e.g. to WhatsApp) or print.
 
-It is a single-file Progressive Web App: no build step, no server and no external dependencies. Install it to the home screen and it works fully offline.
+It is a single-file Progressive Web App: no build step, no server and no external dependencies (the Geist fonts are bundled in `fonts/` under the SIL Open Font License). Install it to the home screen and it works fully offline.
 
 > Personal tool, not an official JFB system. See the in-app *Legal* page.
 
@@ -16,6 +16,7 @@ It is a single-file Progressive Web App: no build step, no server and no externa
 - **Copy / Share / Print**: a plain-text report for messaging apps, or a print layout for PDF.
 - **Backup**: export and import all reports as JSON from *Settings*.
 - Light and dark themes (follows the system or set manually), large tap targets, works one-handed.
+- Shares its design language with [Night Shift Calculator](https://github.com/ripponmarshall-netizen/night-shift-calculator): warm neutrals with one amber accent, Geist type, sliding segmented controls, spring-in dialogs and toasts, and the fire-truck loading screen (once per session; tap to skip). All motion respects the system *Reduce motion* setting.
 
 ## Support
 
