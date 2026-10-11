@@ -351,7 +351,8 @@ async function test(name, fn) {
     const backup = JSON.parse(fs.readFileSync(file, 'utf8'));
     assert.equal(backup.reports.length, 1);
     await page.setInputFiles('#importFile', file);
-    await page.waitForSelector('.toast.show');
+    // The export toast may still be up; wait for the import's own message.
+    await page.waitForFunction(() => /Imported/.test(document.querySelector('.toast.show')?.textContent || ''));
     assert.match(await page.textContent('.toast'), /Imported 0 reports · 1 skipped/);
     await page.evaluate(() => localStorage.setItem('stationbrain_log', '[]'));
     await page.setInputFiles('#importFile', file);
@@ -508,7 +509,7 @@ async function test(name, fn) {
     fs.writeFileSync(file, JSON.stringify({ reports: [entry, entry] }));
     await page.click('[data-view="settings"]');
     await page.setInputFiles('#importFile', file);
-    await page.waitForSelector('.toast.show');
+    await page.waitForFunction(() => /Imported/.test(document.querySelector('.toast.show')?.textContent || ''));
     assert.match(await page.textContent('.toast'), /Imported 1 report · 1 skipped/);
     assert.equal(await logCount(page), 1);
     await ctx.close();
