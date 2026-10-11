@@ -7,7 +7,7 @@ const assert = require('assert/strict');
 const { chromium } = require('playwright');
 
 const ROOT = path.resolve(__dirname, '..');
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.png': 'image/png' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 
 function startServer() {
   const server = http.createServer((req, res) => {
@@ -351,7 +351,8 @@ async function test(name, fn) {
     const backup = JSON.parse(fs.readFileSync(file, 'utf8'));
     assert.equal(backup.reports.length, 1);
     await page.setInputFiles('#importFile', file);
-    await page.waitForSelector('.toast.show');
+    // The export toast may still be up; wait for the import's own message.
+    await page.waitForFunction(() => /Imported/.test(document.querySelector('.toast.show')?.textContent || ''));
     assert.match(await page.textContent('.toast'), /Imported 0 reports · 1 skipped/);
     await page.evaluate(() => localStorage.setItem('stationbrain_log', '[]'));
     await page.setInputFiles('#importFile', file);
@@ -466,6 +467,88 @@ async function test(name, fn) {
     await page.click('[data-mode="incident"]');
     assert.equal(await page.getAttribute('#f_typePremises', 'list'), 'dl_typePremises');
     assert.ok(await page.locator('#dl_supposedOrigin option[value="Electrical fault"]').count() === 1);
+    await ctx.close();
+  });
+
+  console.log('v2.4 design & fixes');
+  await test('updating a report edited from its screen leaves no duplicate behind Back', async () => {
+    const { ctx, page } = await newPage();
+    await fillIncident(page);
+    await page.click('[data-action="generate"]');
+    await page.waitForSelector('#report');
+    await page.click('#backBtn');
+    await page.click('[data-view="log"]');
+    await page.click('.list-item');
+    await page.waitForSelector('#report');
+    await page.click('[data-action="edit-report"]');
+    await page.fill('#f_loc', '7 West Street');
+    await page.click('[data-action="generate"]');
+    await page.waitForFunction(() => document.querySelector('.report-sub') && document.querySelector('.report-sub').textContent.includes('7 West Street'));
+    await page.goBack();
+    await page.waitForSelector('#logSearch');
+    assert.equal(await logCount(page), 1);
+    await ctx.close();
+  });
+  await test('discarding an edit returns to the report once', async () => {
+    const { ctx, page } = await newPage();
+    await fillIncident(page);
+    await page.click('[data-action="generate"]');
+    await page.waitForSelector('#report');
+    await page.click('[data-action="edit-report"]');
+    await page.click('[data-action="discard-edit"]');
+    await page.click('#dialogOk');
+    await page.waitForSelector('#report');
+    await page.goBack();
+    await page.waitForSelector('[data-mode="incident"]');
+    await ctx.close();
+  });
+  await test('import skips a report repeated within one backup file', async () => {
+    const { ctx, page } = await newPage();
+    const entry = { id: 1700000000000, mode: 'debriefing', title: 'Debriefing', sections: [{ title: 'Debrief Notes', text: 'x' }] };
+    const file = path.join(require('os').tmpdir(), `sb-dup-${Date.now()}.json`);
+    fs.writeFileSync(file, JSON.stringify({ reports: [entry, entry] }));
+    await page.click('[data-view="settings"]');
+    await page.setInputFiles('#importFile', file);
+    await page.waitForFunction(() => /Imported/.test(document.querySelector('.toast.show')?.textContent || ''));
+    assert.match(await page.textContent('.toast'), /Imported 1 report · 1 skipped/);
+    assert.equal(await logCount(page), 1);
+    await ctx.close();
+  });
+  await test('segmented control pill slides to the chosen option', async () => {
+    const { ctx, page } = await newPage();
+    await page.click('[data-mode="incident"]');
+    await page.click('[data-field="watch"][data-value="C"]');
+    const r = await page.evaluate(() => {
+      const btn = document.querySelector('[data-field="watch"][data-value="C"]');
+      const pill = btn.parentElement.querySelector('.seg-pill');
+      return { has: btn.parentElement.classList.contains('has-pill'), transform: pill.style.transform, want: `translate(${btn.offsetLeft}px, ${btn.offsetTop}px)`, off: pill.classList.contains('is-off') };
+    });
+    assert.ok(r.has && !r.off);
+    assert.equal(r.transform, r.want);
+    await page.click('[data-field="watch"][data-value="C"]'); // toggle off
+    assert.ok(await page.evaluate(() => document.querySelector('[data-field="watch"]').parentElement.querySelector('.seg-pill').classList.contains('is-off')));
+    await ctx.close();
+  });
+  await test('loading screen plays once per session and a tap skips it', async () => {
+    const { ctx, page } = await newPage();
+    assert.ok(await page.locator('#nsc-splash').isVisible());
+    await page.click('#nsc-splash');
+    await page.waitForSelector('#nsc-splash', { state: 'detached', timeout: 2000 });
+    await page.click('[data-mode="incident"]');
+    await page.reload();
+    assert.equal(await page.locator('#nsc-splash').count(), 0);
+    assert.ok(await page.locator('#reportForm').isVisible());
+    assert.deepEqual(page.errors, []);
+    await ctx.close();
+  });
+  await test('about page explains the three reports and how to use them', async () => {
+    const { ctx, page } = await newPage();
+    await page.click('[data-view="about"]');
+    const text = await page.textContent('#app');
+    for (const s of ['Incident Report', 'Shift Handover', 'Debriefing', 'How to use it', 'Generate Report', 'Export']) assert.ok(text.includes(s), s);
+    assert.doesNotMatch(text, /decision-support/);
+    await page.click('#app [data-view="legal"]');
+    await page.waitForFunction(() => document.querySelector('#viewTitle').textContent === 'Legal');
     await ctx.close();
   });
 
